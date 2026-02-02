@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fastapi-realtime-playground"
+version = "0.1.0"
+description = ""
+authors = ["artyombn <balabashinan@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.128.0"
+uvicorn = "^0.40.0"
+pydantic = {extras = ["email"], version = "^2.12.5"}
+sqlalchemy = "^2.0.45"
+psycopg2-binary = "^2.9.11"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^26.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
