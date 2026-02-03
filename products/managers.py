@@ -11,26 +11,21 @@ class ProductManager:
 
     def __init__(self):
         self.products = OrderedDict()
+        self.last_product_id = 1
 
     def add_product(self, product):
-        try:
-            last_product_id = list(self.products)[-1]
-        except Exception:
-            last_product_id = 0
-
-        if last_product_id != 0:
-            last_product_id += 1
-        else:
-            last_product_id = 1
+        if len(self.products) != 0:
+            self.last_product_id = list(self.products)[-1]
+            self.last_product_id += 1
 
         updated_pr = ProductOutput(
-            id=last_product_id,
+            id=self.last_product_id,
             name=product.name,
             quantity=product.quantity,
             price=product.price,
         )
 
-        self.products[last_product_id] = updated_pr
+        self.products[self.last_product_id] = updated_pr
         return updated_pr
 
     def get_product_by_id(self, product_id):
@@ -38,7 +33,7 @@ class ProductManager:
             raise HTTPException(
                 status_code=404, detail=f"Product ID={product_id} not found"
             )
-        return self.products[product_id]
+        return self.products.get(product_id)
 
     def get_all_products(self):
         return [product for product in self.products.values()]
