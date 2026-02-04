@@ -1,15 +1,26 @@
+from datetime import timedelta
 from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException, Depends
+from jose import jwt
+from starlette import status
 
 from users.managers import user_manager
 from users.schema import (
     UserListOutput,
     UserOutput,
     UserBase,
+    CreateUser,
     AdminUser,
     RegularUser,
     PERMISSIONS,
+    UserOutputWithHashedPWD,
+)
+from users.services import (
+    UserService,
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
+    TokenData,
 )
 
 user_router = APIRouter(
@@ -25,9 +36,20 @@ user_router = APIRouter(
     description="Returns a list of all users with the total number of them.",
 )
 async def get_users() -> UserListOutput:
+    users = user_manager.get_all_users()
+    output_users = [
+        UserOutput(
+            id=user[0],
+            username=user[1].username,
+            email=user[1].email,
+            is_admin=user[1].is_admin,
+            permissions=user[1].permissions,
+        )
+        for user in users
+    ]
     result = UserListOutput(
         total_users=len(user_manager.get_all_users()),
-        users=user_manager.get_all_users(),
+        users=output_users,
     )
     return result
 
@@ -41,7 +63,7 @@ async def get_users() -> UserListOutput:
 async def get_user_by_user_id(user_id: int) -> UserOutput:
     user = user_manager.get_user_by_user_id(user_id)
     user_output = UserOutput(
-        id=user.id,
+        id=user_id,
         username=user.username,
         email=user.email,
         is_admin=user.is_admin,
@@ -57,7 +79,7 @@ async def get_user_by_user_id(user_id: int) -> UserOutput:
     description="Creates a new user and returns the created user with an assigned ID.",
 )
 async def create_user(
-    user: UserBase,
+    user: CreateUser,
     permissions: Optional[list[str]] = Query(
         default=None,
         title="Permissions",
@@ -68,13 +90,63 @@ async def create_user(
     if user.is_admin:
         result = AdminUser(
             username=user.username,
+            password=user.password,
             email=user.email,
         )
     else:
         result = RegularUser(
             username=user.username,
+            password=user.password,
             email=user.email,
             permissions=permissions,
         )
     updated_user = user_manager.add_user(result)
     return updated_user
+
+
+@user_router.get(
+    "login",
+    response_model=UserOutputWithHashedPWD,
+    summary="User Login",
+    description="Login user using access token and refresh token",
+)
+async def login(username: str, password: str) -> UserOutputWithHashedPWD:
+    user = UserService.authenticate_user(username, password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+
+    data = TokenData(
+        sub=username,
+        is_admin=user.is_admin,
+        extra={
+            "user_id": user.id,
+            "access_token_expires": int(access_token_expires.total_seconds()),
+            "refresh_token_expires": int(refresh_token_expires.total_seconds()),
+        },
+    )
+    access_token = UserService.create_token(
+        data=data, expires_delta=access_token_expires
+    )
+    refresh_token = UserService.create_token(
+        data=data, expires_delta=refresh_token_expires
+    )
+
+    print(f"ACCESS TOKEN: {access_token}")
+    print(f"REFRESH TOKEN: {refresh_token}")
+
+    return user
+
+
+@user_router.put(
+    "/me",
+    response_model=UserOutput,
+    summary="Get my info",
+    description="Get info about myself with hashed password",
+)
+async def me(current_user=Depends(UserService.get_current_user_from_jwt)):
+    return current_user
