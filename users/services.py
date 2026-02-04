@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
 from typing import Optional
@@ -6,7 +6,7 @@ from typing import Optional
 import bcrypt
 from fastapi import Depends, HTTPException
 from fastapi.security import APIKeyHeader
-from jose import jwt, JWTError
+from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 from starlette import status
 
@@ -28,6 +28,9 @@ class TokenData(BaseModel):
 
 
 class UserService:
+    """
+    User Service for token creation/update and authorization
+    """
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -59,34 +62,61 @@ class UserService:
 
     @staticmethod
     def create_token(data: TokenData, expires_delta: timedelta) -> str:
+        expire = datetime.now(timezone.utc) + expires_delta
         payload = data.model_dump(exclude_unset=True)
-        expire = datetime.now() + expires_delta
-        payload.update({"exp": expire})
+        payload.update({"exp": int(expire.timestamp())})
         encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
 
-    @staticmethod
+    @classmethod
     def get_current_user_from_jwt(
+        cls,
         token: str = Depends(APIKeyHeader(name="Authorization")),
     ) -> UserOutput | None:
+        username = cls.verify_token(token, "access_token")
+        user_tuple = user_manager.get_user_by_username(username)
+        user_id = user_tuple[0]
+        user = user_tuple[1]
+
+        user_output = UserOutput(
+            id=user_id,
+            username=user.username,
+            email=user.email,
+            is_admin=user.is_admin,
+            permissions=user.permissions,
+        )
+        return user_output
+
+    @staticmethod
+    def verify_token(token: str, token_type: str) -> str:
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
-            username = payload.get("sub")
-            user_tuple = user_manager.get_user_by_username(username)
-
-            user_id = user_tuple[0]
-            user = user_tuple[1]
-
-            user_output = UserOutput(
-                id=user_id,
-                username=user.username,
-                email=user.email,
-                is_admin=user.is_admin,
-                permissions=user.permissions,
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
             )
         except JWTError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
+                detail="Invalid token",
             )
-        return user_output
+        exp = payload.get("exp")
+        current_token_type = payload["extra"]["type"]
+
+        if current_token_type != token_type:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token type is not valid",
+            )
+
+        if not exp or datetime.now(timezone.utc) > datetime.fromtimestamp(
+            exp, tz=timezone.utc
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token expired",
+            )
+        username = payload.get("sub")
+
+        return username

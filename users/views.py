@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from jose import jwt
 from starlette import status
 
-from users.managers import user_manager
+from users.managers import user_manager, UserManager
 from users.schema import (
     UserListOutput,
     UserOutput,
@@ -120,26 +120,71 @@ async def login(username: str, password: str) -> UserOutputWithHashedPWD:
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
-    data = TokenData(
+    data_access_token = TokenData(
         sub=username,
         is_admin=user.is_admin,
         extra={
             "user_id": user.id,
+            "type": "access_token",
             "access_token_expires": int(access_token_expires.total_seconds()),
+        },
+    )
+    data_refresh_token = TokenData(
+        sub=username,
+        is_admin=user.is_admin,
+        extra={
+            "user_id": user.id,
+            "type": "refresh_token",
             "refresh_token_expires": int(refresh_token_expires.total_seconds()),
         },
     )
     access_token = UserService.create_token(
-        data=data, expires_delta=access_token_expires
+        data=data_access_token, expires_delta=access_token_expires
     )
     refresh_token = UserService.create_token(
-        data=data, expires_delta=refresh_token_expires
+        data=data_refresh_token, expires_delta=refresh_token_expires
     )
 
     print(f"ACCESS TOKEN: {access_token}")
     print(f"REFRESH TOKEN: {refresh_token}")
 
     return user
+
+
+@user_router.post(
+    "/refresh",
+    response_model=str,
+    summary="Refresh user",
+    description="Refresh user using access token and refresh token",
+)
+async def refresh_user(token: str) -> str:
+    username = UserService.verify_token(token, "refresh_token")
+    user_tuple = user_manager.get_user_by_username(username)
+    if not user_tuple:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Wrong username or password during token refresh",
+        )
+
+    user_id = user_tuple[0]
+    user = user_tuple[1]
+
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    new_access_token = TokenData(
+        sub=user.username,
+        is_admin=user.is_admin,
+        extra={
+            "user_id": user_id,
+            "type": "access_token",
+            "access_token_expires": int(access_token_expires.total_seconds()),
+        },
+    )
+
+    access_token = UserService.create_token(
+        data=new_access_token, expires_delta=access_token_expires
+    )
+    return f"Access Token was refreshed: {access_token}"
 
 
 @user_router.put(
