@@ -1,7 +1,9 @@
 from collections import OrderedDict
+
+import bcrypt
 from fastapi import HTTPException
 
-from users.schema import UserOutput
+from users.schema import UserOutput, CreateUser
 
 
 class UserManager:
@@ -18,27 +20,37 @@ class UserManager:
             self.last_user_id = list(self.users)[-1]
             self.last_user_id += 1
 
-        updated_user = UserOutput(
+        hashed_password = bcrypt.hashpw(
+            user.password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+        user.password = hashed_password
+
+        self.users[self.last_user_id] = user
+        output_user = UserOutput(
             id=self.last_user_id,
             username=user.username,
             email=user.email,
             is_admin=user.is_admin,
             permissions=user.permissions,
         )
-        self.users[self.last_user_id] = updated_user
-        return updated_user
+
+        return output_user
 
     def get_user_by_user_id(self, user_id: int):
-        print(f"user with ID={user_id} found")
-        print(f"IT IS IN USERS {self._is_user(user_id)}")
         if not self._is_user(user_id):
             raise HTTPException(
                 status_code=404, detail=f"User with ID={user_id} not found"
             )
         return self.users.get(user_id)
 
+    def get_user_by_username(self, username: str):
+        for user in self.users.items():
+            if user[1].username == username:
+                return user
+        return None
+
     def get_all_users(self):
-        return list(self.users.values())
+        return list(self.users.items())
 
     def _is_user(self, user_id: int):
         return user_id in self.users.keys()
