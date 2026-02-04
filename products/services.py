@@ -19,9 +19,8 @@ class ProductService:
     def update(self, product: ProductUpdate, product_id: int) -> ProductOutput:
         return self.manager.update(product, product_id)
 
-    def delete(self, product_id: int) -> dict:
+    def delete(self, product_id: int) -> None:
         self.manager.delete(product_id)
-        return {"message": "Product deleted successfully"}
 
     def get_all(self) -> list[ProductOutput]:
         return self.manager.get_all()
