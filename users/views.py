@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from starlette import status
 from starlette.status import HTTP_400_BAD_REQUEST
 
+from users.dependencies import get_current_user_from_jwt
 from users.exceptions import (
     UserNotFoundError,
     UserAlreadyExistsError,
@@ -108,7 +109,7 @@ async def create_user(
 
 @user_router.get(
     "login",
-    response_model=UserOutputWithHashedPWD,
+    response_model=dict,
     summary="User Login",
     description="Login user using access token and refresh token",
 )
@@ -213,9 +214,5 @@ async def refresh_user(token: str) -> str:
     summary="Get my info",
     description="Get info about myself with hashed password",
 )
-async def me(current_user=Depends(UserService.get_current_user_from_jwt)):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
-        )
+async def me(current_user=Depends(get_current_user_from_jwt)):
     return current_user

@@ -4,8 +4,6 @@ import os
 from typing import Optional
 
 import bcrypt
-from fastapi import Depends
-from fastapi.security import APIKeyHeader
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
@@ -73,7 +71,7 @@ class UserService:
 
     @staticmethod
     def get_all() -> list[UserOutput]:
-        return user_manager.get_users()
+        return user_manager.get_all()
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -117,27 +115,9 @@ class UserService:
             return encoded_jwt
 
     @classmethod
-    def get_current_user_from_jwt(
-        cls,
-        token: str = Depends(APIKeyHeader(name="Authorization")),
-    ) -> UserOutput | None:
+    def get_current_user_from_jwt(cls, token: str) -> UserOutput | None:
         username = cls.verify_token(token, "access_token")
-
-        user_tuple = user_manager.get_by_username(username)
-        if not user_tuple:
-            return None
-
-        user_id = user_tuple[0]
-        user = user_tuple[1]
-
-        user_output = UserOutput(
-            id=user_id,
-            username=user.username,
-            email=user.email,
-            is_admin=user.is_admin,
-            permissions=user.permissions,
-        )
-        return user_output
+        return cls.get_by_username(username)
 
     @staticmethod
     def verify_token(token: str, token_type: str) -> str:
