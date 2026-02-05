@@ -39,3 +39,16 @@ def get_current_user_from_jwt(
     )
 
     return user_output
+
+
+def check_permissions(required_permissions: list[str]):
+    def permission_dependency(current_user=Depends(get_current_user_from_jwt)):
+        user_permissions = current_user.permissions
+        if not set(required_permissions).issubset(set(user_permissions)):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User doesn't have necessary permissions",
+            )
+        return current_user
+
+    return permission_dependency
