@@ -4,14 +4,19 @@ import os
 from typing import Optional
 
 import bcrypt
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import APIKeyHeader
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
-from starlette import status
 
 from users.managers import user_manager
-from users.schema import UserOutput, UserOutputWithHashedPWD
+from users.schema import (
+    UserOutput,
+    UserOutputWithHashedPWD,
+    CreateUser,
+    AdminUser,
+    RegularUser,
+)
 
 load_dotenv()
 
@@ -19,6 +24,22 @@ SECRET_KEY: str = os.environ["SECRET_KEY"]
 ALGORITHM: str = os.environ["ALGORITHM"]
 ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"])
 REFRESH_TOKEN_EXPIRE_MINUTES: int = int(os.environ["REFRESH_TOKEN_EXPIRE_MINUTES"])
+
+
+class TokenIsNotValidError(Exception):
+    pass
+
+
+class TokenExpiredError(Exception):
+    pass
+
+
+class TokenTypeIsNotValidError(Exception):
+    pass
+
+
+class TokenCreationError(Exception):
+    pass
 
 
 class TokenData(BaseModel):
@@ -33,6 +54,38 @@ class UserService:
     """
 
     @staticmethod
+    def add(user: CreateUser, permissions: Optional[list[str]]) -> UserOutput:
+        if user.is_admin:
+            new_user = AdminUser(
+                username=user.username,
+                password=user.password,
+                email=user.email,
+            )
+        else:
+            new_user = RegularUser(
+                username=user.username,
+                password=user.password,
+                email=user.email,
+                permissions=permissions,
+            )
+
+        return user_manager.add(new_user)
+
+    @staticmethod
+    def get_by_id(user_id: int) -> UserOutput:
+        user_output = user_manager.get_by_id(user_id)
+        return user_output
+
+    @staticmethod
+    def get_by_username(username: str) -> UserOutput | None:
+        user_output = user_manager.get_by_username(username)
+        return user_output
+
+    @staticmethod
+    def get_all() -> list[UserOutput]:
+        return user_manager.get_users()
+
+    @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(
             plain_password.encode("utf-8"), hashed_password.encode("utf-8")
@@ -42,7 +95,8 @@ class UserService:
     def authenticate_user(
         cls, username: str, password: str
     ) -> UserOutputWithHashedPWD | None:
-        user_tuple = user_manager.get_user_by_username(username)
+        user_tuple = user_manager.get_by_username(username)
+
         if not user_tuple:
             return None
 
@@ -62,11 +116,15 @@ class UserService:
 
     @staticmethod
     def create_token(data: TokenData, expires_delta: timedelta) -> str:
-        expire = datetime.now(timezone.utc) + expires_delta
-        payload = data.model_dump(exclude_unset=True)
-        payload.update({"exp": int(expire.timestamp())})
-        encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-        return encoded_jwt
+        try:
+            expire = datetime.now(timezone.utc) + expires_delta
+            payload = data.model_dump(exclude_unset=True)
+            payload.update({"exp": int(expire.timestamp())})
+            encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        except Exception:
+            raise TokenCreationError("Error creating token")
+        else:
+            return encoded_jwt
 
     @classmethod
     def get_current_user_from_jwt(
@@ -74,7 +132,11 @@ class UserService:
         token: str = Depends(APIKeyHeader(name="Authorization")),
     ) -> UserOutput | None:
         username = cls.verify_token(token, "access_token")
-        user_tuple = user_manager.get_user_by_username(username)
+
+        user_tuple = user_manager.get_by_username(username)
+        if not user_tuple:
+            return None
+
         user_id = user_tuple[0]
         user = user_tuple[1]
 
@@ -92,31 +154,21 @@ class UserService:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         except ExpiredSignatureError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-            )
+            raise TokenExpiredError("Token expired")
         except JWTError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
+            raise TokenIsNotValidError("Token is not valid")
+
         exp = payload.get("exp")
         current_token_type = payload["extra"]["type"]
 
         if current_token_type != token_type:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token type is not valid",
-            )
+            raise TokenTypeIsNotValidError("Token type is not valid")
 
         if not exp or datetime.now(timezone.utc) > datetime.fromtimestamp(
             exp, tz=timezone.utc
         ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-            )
+            raise TokenExpiredError("Token expired")
+
         username = payload.get("sub")
 
         return username
