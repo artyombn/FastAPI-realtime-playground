@@ -26,7 +26,7 @@ class UserManager:
 
             for u in self.users.values():
                 if u.username == user.username:
-                    raise UserAlreadyExistsError("User already exists")
+                    raise UserAlreadyExistsError()
 
         try:
             hashed_password = bcrypt.hashpw(
@@ -43,13 +43,13 @@ class UserManager:
                 permissions=user.permissions,
             )
         except Exception:
-            raise UserCreationError("User creation failed")
+            raise UserCreationError()
 
         return output_user
 
     def get_by_id(self, user_id: int):
         if not self._is_user(user_id):
-            raise UserNotFoundError("User not found")
+            raise UserNotFoundError()
         return self.users.get(user_id)
 
     def get_by_username(self, username: str):

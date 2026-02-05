@@ -1,26 +1,33 @@
 class UserAlreadyExistsError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("User already exists")
 
 
 class UserNotFoundError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("User not found")
 
 
 class UserCreationError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("User creation failed")
 
 
 class TokenIsNotValidError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Authentication Error: Token is not valid")
 
 
 class TokenExpiredError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Authentication Error: Token is expired")
 
 
 class TokenTypeIsNotValidError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Authentication Error: Token type is not valid")
 
 
 class TokenCreationError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Authentication Error: Error creating token")

@@ -1,6 +1,8 @@
 class ProductAlreadyExistsError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Product already exists")
 
 
 class ProductNotFoundError(Exception):
-    pass
+    def __init__(self):
+        super().__init__("Product not found")

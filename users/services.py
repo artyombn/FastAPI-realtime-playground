@@ -110,7 +110,7 @@ class UserService:
             payload.update({"exp": int(expire.timestamp())})
             encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
         except Exception:
-            raise TokenCreationError("Error creating token")
+            raise TokenCreationError()
         else:
             return encoded_jwt
 
@@ -124,20 +124,20 @@ class UserService:
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         except ExpiredSignatureError:
-            raise TokenExpiredError("Token expired")
+            raise TokenExpiredError()
         except JWTError:
-            raise TokenIsNotValidError("Token is not valid")
+            raise TokenIsNotValidError()
 
         exp = payload.get("exp")
         current_token_type = payload["extra"]["type"]
 
         if current_token_type != token_type:
-            raise TokenTypeIsNotValidError("Token type is not valid")
+            raise TokenTypeIsNotValidError()
 
         if not exp or datetime.now(timezone.utc) > datetime.fromtimestamp(
             exp, tz=timezone.utc
         ):
-            raise TokenExpiredError("Token expired")
+            raise TokenExpiredError()
 
         username = payload.get("sub")
 

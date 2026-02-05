@@ -20,7 +20,7 @@ class ProductManager:
 
             for p in self.products.values():
                 if p.name == product.name:
-                    raise ProductAlreadyExistsError("Product already exists")
+                    raise ProductAlreadyExistsError()
 
         updated_pr = ProductOutput(
             id=self.last_product_id,
@@ -34,7 +34,7 @@ class ProductManager:
 
     def get_by_id(self, product_id):
         if not self._is_product_exist(product_id):
-            raise ProductNotFoundError("Product not found")
+            raise ProductNotFoundError()
         return self.products.get(product_id)
 
     def get_all(self):
@@ -42,7 +42,7 @@ class ProductManager:
 
     def update(self, product, product_id):
         if not self._is_product_exist(product_id):
-            raise ProductNotFoundError("Product not found")
+            raise ProductNotFoundError()
         new_product = ProductOutput(
             id=product_id,
             name=product.name,
@@ -54,7 +54,7 @@ class ProductManager:
 
     def delete(self, product_id):
         if not self._is_product_exist(product_id):
-            raise ProductNotFoundError("Product not found")
+            raise ProductNotFoundError()
         del self.products[product_id]
         return None
 
