@@ -2,7 +2,7 @@ import string
 
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
-PERMISSIONS = ["view_product", "update_product", "add_product", "delete_product"]
+from users.permissions import Permissions
 
 
 class UserBase(BaseModel):
@@ -67,7 +67,7 @@ class AdminUser(CreateUser):
     """
 
     is_admin: bool = True
-    permissions: list[str] = PERMISSIONS
+    permissions: list[str] = Permissions.list()
 
 
 class RegularUser(CreateUser):

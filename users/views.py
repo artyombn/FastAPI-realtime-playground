@@ -15,12 +15,11 @@ from users.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
+from users.permissions import Permissions
 from users.schema import (
     UserListOutput,
     UserOutput,
     CreateUser,
-    PERMISSIONS,
-    UserOutputWithHashedPWD,
 )
 from users.services import (
     UserService,
@@ -93,8 +92,8 @@ async def create_user(
     permissions: Optional[list[str]] = Query(
         default=None,
         title="Permissions",
-        example=PERMISSIONS,
-        enum=PERMISSIONS,
+        example=Permissions.list(),
+        enum=Permissions.list(),
     ),
 ) -> UserOutput:
     try:
