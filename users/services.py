@@ -9,6 +9,12 @@ from fastapi.security import APIKeyHeader
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
+from users.exceptions import (
+    TokenCreationError,
+    TokenExpiredError,
+    TokenIsNotValidError,
+    TokenTypeIsNotValidError,
+)
 from users.managers import user_manager
 from users.schema import (
     UserOutput,
@@ -24,22 +30,6 @@ SECRET_KEY: str = os.environ["SECRET_KEY"]
 ALGORITHM: str = os.environ["ALGORITHM"]
 ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"])
 REFRESH_TOKEN_EXPIRE_MINUTES: int = int(os.environ["REFRESH_TOKEN_EXPIRE_MINUTES"])
-
-
-class TokenIsNotValidError(Exception):
-    pass
-
-
-class TokenExpiredError(Exception):
-    pass
-
-
-class TokenTypeIsNotValidError(Exception):
-    pass
-
-
-class TokenCreationError(Exception):
-    pass
 
 
 class TokenData(BaseModel):

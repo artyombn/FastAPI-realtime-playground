@@ -1,14 +1,7 @@
 from collections import OrderedDict
 
+from products.exceptions import ProductAlreadyExistsError, ProductNotFoundError
 from products.schema import ProductOutput
-
-
-class ProductAlreadyExistsError(Exception):
-    pass
-
-
-class ProductNotFoundError(Exception):
-    pass
 
 
 class ProductManager:

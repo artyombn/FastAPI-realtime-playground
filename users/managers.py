@@ -2,19 +2,12 @@ from collections import OrderedDict
 
 import bcrypt
 
+from users.exceptions import (
+    UserAlreadyExistsError,
+    UserCreationError,
+    UserNotFoundError,
+)
 from users.schema import UserOutput
-
-
-class UserAlreadyExistsError(Exception):
-    pass
-
-
-class UserNotFoundError(Exception):
-    pass
-
-
-class UserCreationError(Exception):
-    pass
 
 
 class UserManager:

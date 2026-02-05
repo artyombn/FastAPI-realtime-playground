@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from .managers import ProductAlreadyExistsError, ProductNotFoundError
+from .exceptions import ProductAlreadyExistsError, ProductNotFoundError
 from .schema import ProductListOutput, ProductOutput, ProductCreate, ProductUpdate
 from .services import product_service
 

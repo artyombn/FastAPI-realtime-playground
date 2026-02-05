@@ -5,11 +5,14 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from starlette import status
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from users.managers import (
-    user_manager,
-    UserAlreadyExistsError,
+from users.exceptions import (
     UserNotFoundError,
+    UserAlreadyExistsError,
     UserCreationError,
+    TokenCreationError,
+    TokenExpiredError,
+    TokenIsNotValidError,
+    TokenTypeIsNotValidError,
 )
 from users.schema import (
     UserListOutput,
@@ -23,10 +26,6 @@ from users.services import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
-    TokenCreationError,
-    TokenExpiredError,
-    TokenIsNotValidError,
-    TokenTypeIsNotValidError,
 )
 
 user_router = APIRouter(
@@ -173,7 +172,7 @@ async def refresh_user(token: str) -> str:
     except TokenTypeIsNotValidError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    user_tuple = user_manager.get_by_username(username)
+    user_tuple = UserService.get_by_username(username)
     if not user_tuple:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
