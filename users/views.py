@@ -2,17 +2,19 @@ from datetime import timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException, Depends
-from jose import jwt
 from starlette import status
+from starlette.status import HTTP_400_BAD_REQUEST
 
-from users.managers import user_manager, UserManager
+from users.managers import (
+    user_manager,
+    UserAlreadyExistsError,
+    UserNotFoundError,
+    UserCreationError,
+)
 from users.schema import (
     UserListOutput,
     UserOutput,
-    UserBase,
     CreateUser,
-    AdminUser,
-    RegularUser,
     PERMISSIONS,
     UserOutputWithHashedPWD,
 )
@@ -21,6 +23,10 @@ from users.services import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
+    TokenCreationError,
+    TokenExpiredError,
+    TokenIsNotValidError,
+    TokenTypeIsNotValidError,
 )
 
 user_router = APIRouter(
@@ -36,7 +42,7 @@ user_router = APIRouter(
     description="Returns a list of all users with the total number of them.",
 )
 async def get_users() -> UserListOutput:
-    users = user_manager.get_all_users()
+    users = UserService.get_all()
     output_users = [
         UserOutput(
             id=user[0],
@@ -48,7 +54,7 @@ async def get_users() -> UserListOutput:
         for user in users
     ]
     result = UserListOutput(
-        total_users=len(user_manager.get_all_users()),
+        total_users=len(users),
         users=output_users,
     )
     return result
@@ -61,7 +67,11 @@ async def get_users() -> UserListOutput:
     description="Returns a user with the given ID.",
 )
 async def get_user_by_user_id(user_id: int) -> UserOutput:
-    user = user_manager.get_user_by_user_id(user_id)
+    try:
+        user = UserService.get_by_id(user_id)
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
     user_output = UserOutput(
         id=user_id,
         username=user.username,
@@ -87,21 +97,14 @@ async def create_user(
         enum=PERMISSIONS,
     ),
 ) -> UserOutput:
-    if user.is_admin:
-        result = AdminUser(
-            username=user.username,
-            password=user.password,
-            email=user.email,
-        )
-    else:
-        result = RegularUser(
-            username=user.username,
-            password=user.password,
-            email=user.email,
-            permissions=permissions,
-        )
-    updated_user = user_manager.add_user(result)
-    return updated_user
+    try:
+        created_user = UserService.add(user, permissions)
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
+    except UserCreationError as e:
+        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return created_user
 
 
 @user_router.get(
@@ -110,7 +113,7 @@ async def create_user(
     summary="User Login",
     description="Login user using access token and refresh token",
 )
-async def login(username: str, password: str) -> UserOutputWithHashedPWD:
+async def login(username: str, password: str) -> dict:
     user = UserService.authenticate_user(username, password)
     if user is None:
         raise HTTPException(
@@ -138,17 +141,20 @@ async def login(username: str, password: str) -> UserOutputWithHashedPWD:
             "refresh_token_expires": int(refresh_token_expires.total_seconds()),
         },
     )
-    access_token = UserService.create_token(
-        data=data_access_token, expires_delta=access_token_expires
-    )
-    refresh_token = UserService.create_token(
-        data=data_refresh_token, expires_delta=refresh_token_expires
-    )
+    try:
+        access_token = UserService.create_token(
+            data=data_access_token, expires_delta=access_token_expires
+        )
+        refresh_token = UserService.create_token(
+            data=data_refresh_token, expires_delta=refresh_token_expires
+        )
+    except TokenCreationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
 
-    print(f"ACCESS TOKEN: {access_token}")
-    print(f"REFRESH TOKEN: {refresh_token}")
-
-    return user
+    return {"user": user, "access_token": access_token, "refresh_token": refresh_token}
 
 
 @user_router.post(
@@ -158,8 +164,16 @@ async def login(username: str, password: str) -> UserOutputWithHashedPWD:
     description="Refresh user using access token and refresh token",
 )
 async def refresh_user(token: str) -> str:
-    username = UserService.verify_token(token, "refresh_token")
-    user_tuple = user_manager.get_user_by_username(username)
+    try:
+        username = UserService.verify_token(token, "refresh_token")
+    except TokenExpiredError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except TokenIsNotValidError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenTypeIsNotValidError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    user_tuple = user_manager.get_by_username(username)
     if not user_tuple:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -181,9 +195,16 @@ async def refresh_user(token: str) -> str:
         },
     )
 
-    access_token = UserService.create_token(
-        data=new_access_token, expires_delta=access_token_expires
-    )
+    try:
+        access_token = UserService.create_token(
+            data=new_access_token, expires_delta=access_token_expires
+        )
+    except TokenCreationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
+
     return f"Access Token was refreshed: {access_token}"
 
 
@@ -194,4 +215,8 @@ async def refresh_user(token: str) -> str:
     description="Get info about myself with hashed password",
 )
 async def me(current_user=Depends(UserService.get_current_user_from_jwt)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
     return current_user
