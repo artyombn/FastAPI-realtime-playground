@@ -3,4 +3,4 @@
 #./run_all.sh
 
 echo "Starting App..."
-uvicorn main:app --reload
+uvicorn src.main:app --reload

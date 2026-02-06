@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
-from products.exceptions import ProductAlreadyExistsError, ProductNotFoundError
-from products.schema import ProductOutput
+from src.products.exceptions import ProductAlreadyExistsError, ProductNotFoundError
+from src.products.schema import ProductResponse
 
 
 class ProductManager:
@@ -22,7 +22,7 @@ class ProductManager:
                 if p.name == product.name:
                     raise ProductAlreadyExistsError()
 
-        updated_pr = ProductOutput(
+        updated_pr = ProductResponse(
             id=self.last_product_id,
             name=product.name,
             quantity=product.quantity,
@@ -43,7 +43,7 @@ class ProductManager:
     def update(self, product, product_id):
         if not self._is_product_exist(product_id):
             raise ProductNotFoundError()
-        new_product = ProductOutput(
+        new_product = ProductResponse(
             id=product_id,
             name=product.name,
             quantity=product.quantity,

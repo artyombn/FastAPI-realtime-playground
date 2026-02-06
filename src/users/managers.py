@@ -2,12 +2,12 @@ from collections import OrderedDict
 
 import bcrypt
 
-from users.exceptions import (
+from src.users.exceptions import (
     UserAlreadyExistsError,
     UserCreationError,
     UserNotFoundError,
 )
-from users.schema import UserOutput
+from src.users.schema import UserResponse
 
 
 class UserManager:
@@ -35,7 +35,7 @@ class UserManager:
             user.password = hashed_password
 
             self.users[self.last_user_id] = user
-            output_user = UserOutput(
+            output_user = UserResponse(
                 id=self.last_user_id,
                 username=user.username,
                 email=user.email,

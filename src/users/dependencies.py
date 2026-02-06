@@ -1,18 +1,18 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
-from users.exceptions import (
+from src.users.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from users.schema import UserOutput
-from users.services import UserService
+from src.users.schema import UserResponse
+from src.users.services import UserService
 
 
 def get_current_user_from_jwt(
     token: str = Depends(APIKeyHeader(name="Authorization")),
-) -> UserOutput | None:
+) -> UserResponse | None:
     try:
         user_tuple = UserService.get_current_user_from_jwt(token)
     except TokenExpiredError as e:
@@ -30,7 +30,7 @@ def get_current_user_from_jwt(
     user_id = user_tuple[0]
     user = user_tuple[1]
 
-    user_output = UserOutput(
+    user_output = UserResponse(
         id=user_id,
         username=user.username,
         email=user.email,

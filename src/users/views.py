@@ -5,8 +5,8 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from starlette import status
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from users.dependencies import get_current_user_from_jwt
-from users.exceptions import (
+from src.users.dependencies import get_current_user_from_jwt
+from src.users.exceptions import (
     UserNotFoundError,
     UserAlreadyExistsError,
     UserCreationError,
@@ -15,13 +15,13 @@ from users.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from users.permissions import Permissions
-from users.schema import (
-    UserListOutput,
-    UserOutput,
+from src.users.permissions import Permissions
+from src.users.schema import (
+    UserListResponse,
+    UserResponse,
     CreateUser,
 )
-from users.services import (
+from src.users.services import (
     UserService,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
@@ -36,14 +36,14 @@ user_router = APIRouter(
 
 @user_router.get(
     "/",
-    response_model=UserListOutput,
+    response_model=UserListResponse,
     summary="Get list of users",
     description="Returns a list of all users with the total number of them.",
 )
-async def get_users() -> UserListOutput:
+async def get_users() -> UserListResponse:
     users = UserService.get_all()
     output_users = [
-        UserOutput(
+        UserResponse(
             id=user[0],
             username=user[1].username,
             email=user[1].email,
@@ -52,7 +52,7 @@ async def get_users() -> UserListOutput:
         )
         for user in users
     ]
-    result = UserListOutput(
+    result = UserListResponse(
         total_users=len(users),
         users=output_users,
     )
@@ -61,17 +61,17 @@ async def get_users() -> UserListOutput:
 
 @user_router.get(
     "/{user_id}",
-    response_model=UserOutput,
+    response_model=UserResponse,
     summary="Get a user",
     description="Returns a user with the given ID.",
 )
-async def get_user_by_user_id(user_id: int) -> UserOutput:
+async def get_user_by_user_id(user_id: int) -> UserResponse:
     try:
         user = UserService.get_by_id(user_id)
     except UserNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-    user_output = UserOutput(
+    user_output = UserResponse(
         id=user_id,
         username=user.username,
         email=user.email,
@@ -83,7 +83,7 @@ async def get_user_by_user_id(user_id: int) -> UserOutput:
 
 @user_router.post(
     "/create",
-    response_model=UserOutput,
+    response_model=UserResponse,
     summary="Create a new user",
     description="Creates a new user and returns the created user with an assigned ID.",
 )
@@ -95,7 +95,7 @@ async def create_user(
         example=Permissions.list(),
         enum=Permissions.list(),
     ),
-) -> UserOutput:
+) -> UserResponse:
     try:
         created_user = UserService.add(user, permissions)
     except UserAlreadyExistsError as e:
@@ -209,7 +209,7 @@ async def refresh_user(token: str) -> str:
 
 @user_router.put(
     "/me",
-    response_model=UserOutput,
+    response_model=UserResponse,
     summary="Get my info",
     description="Get info about myself with hashed password",
 )

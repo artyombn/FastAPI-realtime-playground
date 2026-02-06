@@ -7,16 +7,16 @@ import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
-from users.exceptions import (
+from src.users.exceptions import (
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from users.managers import user_manager
-from users.schema import (
-    UserOutput,
-    UserOutputWithHashedPWD,
+from src.users.managers import user_manager
+from src.users.schema import (
+    UserResponse,
+    UserResponseWithHashedPWD,
     CreateUser,
     AdminUser,
     RegularUser,
@@ -42,7 +42,7 @@ class UserService:
     """
 
     @staticmethod
-    def add(user: CreateUser, permissions: Optional[list[str]]) -> UserOutput:
+    def add(user: CreateUser, permissions: Optional[list[str]]) -> UserResponse:
         if user.is_admin:
             new_user = AdminUser(
                 username=user.username,
@@ -60,17 +60,17 @@ class UserService:
         return user_manager.add(new_user)
 
     @staticmethod
-    def get_by_id(user_id: int) -> UserOutput:
+    def get_by_id(user_id: int) -> UserResponse:
         user_output = user_manager.get_by_id(user_id)
         return user_output
 
     @staticmethod
-    def get_by_username(username: str) -> UserOutput | None:
+    def get_by_username(username: str) -> UserResponse | None:
         user_output = user_manager.get_by_username(username)
         return user_output
 
     @staticmethod
-    def get_all() -> list[UserOutput]:
+    def get_all() -> list[UserResponse]:
         return user_manager.get_all()
 
     @staticmethod
@@ -82,7 +82,7 @@ class UserService:
     @classmethod
     def authenticate_user(
         cls, username: str, password: str
-    ) -> UserOutputWithHashedPWD | None:
+    ) -> UserResponseWithHashedPWD | None:
         user_tuple = user_manager.get_by_username(username)
 
         if not user_tuple:
@@ -92,7 +92,7 @@ class UserService:
         user = user_tuple[1]
         if not cls.verify_password(password, user.password):
             return None
-        user_output = UserOutputWithHashedPWD(
+        user_output = UserResponseWithHashedPWD(
             id=user_id,
             username=user.username,
             password=user.password,
@@ -115,7 +115,7 @@ class UserService:
             return encoded_jwt
 
     @classmethod
-    def get_current_user_from_jwt(cls, token: str) -> UserOutput | None:
+    def get_current_user_from_jwt(cls, token: str) -> UserResponse | None:
         username = cls.verify_token(token, "access_token")
         return cls.get_by_username(username)
 

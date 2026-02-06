@@ -1,5 +1,5 @@
-from products.managers import product_manager, ProductManager
-from products.schema import ProductOutput, ProductCreate, ProductUpdate
+from src.products.managers import product_manager, ProductManager
+from src.products.schema import ProductResponse, ProductCreate, ProductUpdate
 
 
 class ProductService:
@@ -10,19 +10,19 @@ class ProductService:
     def __init__(self, manager: ProductManager):
         self.manager = manager
 
-    def add(self, product: ProductCreate) -> ProductOutput:
+    def add(self, product: ProductCreate) -> ProductResponse:
         return self.manager.add(product)
 
-    def get(self, product_id: int) -> ProductOutput:
+    def get(self, product_id: int) -> ProductResponse:
         return self.manager.get_by_id(product_id)
 
-    def update(self, product: ProductUpdate, product_id: int) -> ProductOutput:
+    def update(self, product: ProductUpdate, product_id: int) -> ProductResponse:
         return self.manager.update(product, product_id)
 
     def delete(self, product_id: int) -> None:
         self.manager.delete(product_id)
 
-    def get_all(self) -> list[ProductOutput]:
+    def get_all(self) -> list[ProductResponse]:
         return self.manager.get_all()
 
 

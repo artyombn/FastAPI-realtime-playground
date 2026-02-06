@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 
+from src.users.schema import UserResponse
+
 
 class ProductBase(BaseModel):
     """
@@ -37,7 +39,7 @@ class ProductDelete(ProductBase):
     """
 
 
-class ProductOutput(ProductBase):
+class ProductResponse(ProductBase):
     """
     Schema for getting an existing Product
     """
@@ -45,10 +47,28 @@ class ProductOutput(ProductBase):
     id: int = Field(description="Unique product ID")
 
 
-class ProductListOutput(BaseModel):
+class ProductListResponse(BaseModel):
     """
     Schema for getting a list of Products
     """
 
     total_products: int
-    products: list[ProductOutput]
+    products: list[ProductResponse]
+
+
+class CreateProductResponse(BaseModel):
+    """
+    Response schema for created Product with appropriate information (product, user)
+    """
+
+    created_product: ProductResponse
+    user_who_created: UserResponse
+
+
+class UpdateProductResponse(BaseModel):
+    """
+    Response schema for updated Product with appropriate information (product, user)
+    """
+
+    updated_product: ProductResponse
+    user_who_updated: UserResponse

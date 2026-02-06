@@ -2,7 +2,7 @@ import string
 
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
-from users.permissions import Permissions
+from src.users.permissions import Permissions
 
 
 class UserBase(BaseModel):
@@ -82,7 +82,7 @@ class RegularUser(CreateUser):
     is_admin: bool = False
 
 
-class UserOutput(UserBase):
+class UserResponse(UserBase):
     """
     Schema for getting an existing User
     """
@@ -90,7 +90,7 @@ class UserOutput(UserBase):
     id: int = Field(description="Unique user ID")
 
 
-class UserOutputWithHashedPWD(UserOutput):
+class UserResponseWithHashedPWD(UserResponse):
     """
     To get an existing User with hashed password
     """
@@ -98,6 +98,10 @@ class UserOutputWithHashedPWD(UserOutput):
     password: str = Field(description="Hashed User Password")
 
 
-class UserListOutput(BaseModel):
+class UserListResponse(BaseModel):
+    """
+    To get a list all Users with total number
+    """
+
     total_users: int
-    users: list[UserOutput]
+    users: list[UserResponse]

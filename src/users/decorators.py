@@ -3,7 +3,7 @@ from functools import wraps
 from fastapi import Depends, HTTPException
 from starlette import status
 
-from users.dependencies import get_current_user_from_jwt
+from src.users.dependencies import get_current_user_from_jwt
 
 
 def handle_check_permissions(required_permissions: list[str]):
@@ -18,7 +18,7 @@ def handle_check_permissions(required_permissions: list[str]):
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="This user doesn't have necessary permissions",
                 )
-            return await func(*args, current_user, **kwargs)
+            return await func(*args, current_user=current_user, **kwargs)
 
         return wrapper
 
