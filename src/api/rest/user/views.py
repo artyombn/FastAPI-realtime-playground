@@ -5,8 +5,8 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from starlette import status
 from starlette.status import HTTP_400_BAD_REQUEST
 
-from src.users.dependencies import get_current_user_from_jwt
-from src.users.exceptions import (
+from src.api.rest.user.dependencies import get_current_user_from_jwt
+from src.core.user.exceptions import (
     UserNotFoundError,
     UserAlreadyExistsError,
     UserCreationError,

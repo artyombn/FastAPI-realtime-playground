@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from src.products.exceptions import ProductAlreadyExistsError, ProductNotFoundError
+from src.core.product.exceptions import ProductAlreadyExistsError, ProductNotFoundError
 from src.core.product.entities import ProductResponse
 
 

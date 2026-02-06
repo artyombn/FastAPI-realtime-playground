@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 
-from src.users.exceptions import (
+from src.core.user.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,

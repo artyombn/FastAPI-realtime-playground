@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import bcrypt
 
-from src.users.exceptions import (
+from src.core.user.exceptions import (
     UserAlreadyExistsError,
     UserCreationError,
     UserNotFoundError,

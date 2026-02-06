@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 
-from src.products.views import product_router
-from src.users.views import user_router
+from src.api.rest.product.views import product_router
+from src.api.rest.user.views import user_router
 
 app = FastAPI()
 

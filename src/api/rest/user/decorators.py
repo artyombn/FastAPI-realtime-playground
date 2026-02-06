@@ -3,7 +3,7 @@ from functools import wraps
 from fastapi import Depends, HTTPException
 from starlette import status
 
-from src.users.dependencies import get_current_user_from_jwt
+from src.api.rest.user.dependencies import get_current_user_from_jwt
 
 
 def handle_check_permissions(required_permissions: list[str]):

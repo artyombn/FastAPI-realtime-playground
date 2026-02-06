@@ -7,7 +7,7 @@ import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
-from src.users.exceptions import (
+from src.core.user.exceptions import (
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
