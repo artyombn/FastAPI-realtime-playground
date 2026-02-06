@@ -2,10 +2,9 @@ from fastapi import APIRouter, Depends
 
 from src.users.decorators import handle_check_permissions
 from src.users.dependencies import get_current_user_from_jwt
-from src.users.permissions import Permissions
-from src.users.schema import UserResponse
-from .decorators import handle_product_errors
-from .schema import (
+from src.core.permissions import Permissions
+from src.products.decorators import handle_product_errors
+from src.core.product.entities import (
     ProductListResponse,
     ProductResponse,
     ProductCreate,
@@ -13,7 +12,7 @@ from .schema import (
     UpdateProductResponse,
     CreateProductResponse,
 )
-from .services import product_service
+from src.core.product.services import product_service
 
 product_router = APIRouter(prefix="/products", tags=["products"])
 

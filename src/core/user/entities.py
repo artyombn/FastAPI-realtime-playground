@@ -2,7 +2,7 @@ import string
 
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
-from src.users.permissions import Permissions
+from src.core.permissions import Permissions
 
 
 class UserBase(BaseModel):

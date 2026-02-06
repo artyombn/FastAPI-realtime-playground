@@ -14,7 +14,7 @@ from src.users.exceptions import (
     TokenTypeIsNotValidError,
 )
 from src.users.managers import user_manager
-from src.users.schema import (
+from src.core.user.entities import (
     UserResponse,
     UserResponseWithHashedPWD,
     CreateUser,

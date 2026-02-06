@@ -7,7 +7,7 @@ from src.users.exceptions import (
     UserCreationError,
     UserNotFoundError,
 )
-from src.users.schema import UserResponse
+from src.core.user.entities import UserResponse
 
 
 class UserManager:

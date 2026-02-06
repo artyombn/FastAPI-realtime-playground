@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from src.users.schema import UserResponse
+from src.core.user.entities import UserResponse
 
 
 class ProductBase(BaseModel):

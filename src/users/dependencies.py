@@ -6,8 +6,8 @@ from src.users.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from src.users.schema import UserResponse
-from src.users.services import UserService
+from src.core.user.entities import UserResponse
+from src.core.user.services import UserService
 
 
 def get_current_user_from_jwt(

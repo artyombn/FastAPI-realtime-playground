@@ -15,13 +15,13 @@ from src.users.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from src.users.permissions import Permissions
-from src.users.schema import (
+from src.core.permissions import Permissions
+from src.core.user.entities import (
     UserListResponse,
     UserResponse,
     CreateUser,
 )
-from src.users.services import (
+from src.core.user.services import (
     UserService,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,

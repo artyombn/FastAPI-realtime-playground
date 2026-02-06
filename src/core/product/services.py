@@ -1,5 +1,5 @@
 from src.products.managers import product_manager, ProductManager
-from src.products.schema import ProductResponse, ProductCreate, ProductUpdate
+from src.core.product.entities import ProductResponse, ProductCreate, ProductUpdate
 
 
 class ProductService:

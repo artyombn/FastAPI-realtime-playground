@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from src.products.exceptions import ProductAlreadyExistsError, ProductNotFoundError
-from src.products.schema import ProductResponse
+from src.core.product.entities import ProductResponse
 
 
 class ProductManager:
