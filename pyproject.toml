@@ -17,6 +17,8 @@ bcrypt = "^5.0.0"
 python-jose = "^3.5.0"
 python-dotenv = "^1.2.1"
 gunicorn = "^25.0.1"
+strawberry-graphql = {extras = ["debug-server"], version = "^0.291.2"}
+secretstorage = "^3.5.0"
 
 
 [tool.poetry.group.dev.dependencies]
