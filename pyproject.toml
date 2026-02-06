@@ -16,6 +16,7 @@ psycopg2-binary = "^2.9.11"
 bcrypt = "^5.0.0"
 python-jose = "^3.5.0"
 python-dotenv = "^1.2.1"
+gunicorn = "^25.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
