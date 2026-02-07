@@ -3,12 +3,12 @@ import strawberry
 from fastapi import FastAPI, APIRouter
 from strawberry.fastapi import GraphQLRouter
 
-from src.api.graphql.resolvers import Query
+from src.api.graphql.resolvers import Query, Mutation
 from src.api.rest.product.views import product_router
 from src.api.rest.user.views import user_router
 
 app = FastAPI()
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(query=Query, mutation=Mutation)
 
 # API routers
 api_v1_router = APIRouter(prefix="/v1/api")
