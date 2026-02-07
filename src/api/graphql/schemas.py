@@ -14,3 +14,12 @@ class UserSchema:
 class TokenSchema:
     access_token: str
     refresh_token: str
+
+
+@strawberry.input
+class UserInput:
+    username: str
+    email: str
+    password: str
+    is_admin: bool = False
+    permissions: list[str] = strawberry.field(default_factory=list)
