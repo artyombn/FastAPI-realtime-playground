@@ -10,6 +10,9 @@ from src.core.user.exceptions import (
     UserNotFoundError,
     UserCreationError,
     TokenCreationError,
+    TokenExpiredError,
+    TokenIsNotValidError,
+    TokenTypeIsNotValidError,
 )
 from src.core.user.entities import CreateUser
 from src.core.user.services import (
@@ -120,3 +123,42 @@ class UserMutation:
             raise GraphQLError(str(e))
 
         return TokenSchema(access_token=access_token, refresh_token=refresh_token)
+
+    @strawberry.mutation(description="Refresh Token")
+    def refresh_token(token: str) -> TokenSchema:
+        try:
+            username = UserService.verify_token(token, "refresh_token")
+        except TokenExpiredError as e:
+            raise GraphQLError(str(e))
+        except TokenIsNotValidError as e:
+            raise GraphQLError(str(e))
+        except TokenTypeIsNotValidError as e:
+            raise GraphQLError(str(e))
+
+        user_tuple = UserService.get_by_username(username)
+        if not user_tuple:
+            raise GraphQLError("Wrong username or password during token refresh")
+
+        user_id = user_tuple[0]
+        user = user_tuple[1]
+
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+        new_access_token = TokenData(
+            sub=user.username,
+            is_admin=user.is_admin,
+            extra={
+                "user_id": user_id,
+                "type": "access_token",
+                "access_token_expires": int(access_token_expires.total_seconds()),
+            },
+        )
+
+        try:
+            access_token = UserService.create_token(
+                data=new_access_token, expires_delta=access_token_expires
+            )
+        except TokenCreationError as e:
+            raise GraphQLError(str(e))
+
+        return TokenSchema(access_token=access_token, refresh_token=token)
