@@ -3,6 +3,7 @@ import strawberry
 from fastapi import FastAPI, APIRouter
 from strawberry.fastapi import GraphQLRouter
 
+from src.dependencies import context_dependency
 from src.api.graphql.resolvers import Query, Mutation
 from src.api.rest.product.views import product_router
 from src.api.rest.user.views import user_router
@@ -16,7 +17,7 @@ api_v1_router.include_router(product_router)
 api_v1_router.include_router(user_router)
 
 # GraphQL routers
-graphql_app = GraphQLRouter(schema)
+graphql_app = GraphQLRouter(schema, context_getter=context_dependency)
 
 
 app.include_router(api_v1_router)
