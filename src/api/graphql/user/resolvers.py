@@ -5,6 +5,7 @@ import strawberry
 from graphql import GraphQLError
 from pydantic import ValidationError
 
+from src.api.graphql.decorators import paginate
 from src.api.graphql.decorators import require_authentication
 from src.core.user.exceptions import (
     UserNotFoundError,
@@ -21,13 +22,13 @@ from src.core.user.services import (
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
 )
-from src.api.graphql.user.schemas import UserSchema, UserInput, TokenSchema
+from src.api.graphql.user.schemas import UserSchema, UserInput, TokenSchema, UserPage
 
 
 @strawberry.type
 class UserQuery:
 
-    @strawberry.field(description="Get User query.")
+    @strawberry.field(description="Get User")
     def user(self, id: int) -> UserSchema:
         user = UserService.get_by_id(id)
         if not user:
@@ -40,9 +41,10 @@ class UserQuery:
             permissions=user.permissions,
         )
 
-    @strawberry.field(description="Get all Users query.")
+    @strawberry.field(description="Get all Users")
     @require_authentication
-    def all_users(self, info) -> list[UserSchema]:
+    @paginate
+    def all_users(self, info, limit: int, offset: int) -> UserPage:
         users = [
             UserSchema(
                 id=user[0],
@@ -59,7 +61,7 @@ class UserQuery:
 @strawberry.type
 class UserMutation:
 
-    @strawberry.mutation(description="Create new user.")
+    @strawberry.mutation(description="Create new user")
     def register(
         self, user: UserInput, permissions: Optional[list[str]] = None
     ) -> UserSchema:
@@ -86,7 +88,7 @@ class UserMutation:
             permissions=created_user.permissions,
         )
 
-    @strawberry.mutation(description="User Login.")
+    @strawberry.mutation(description="User Login")
     def login(self, username: str, password: str) -> TokenSchema:
         user = UserService.authenticate_user(username, password)
         if user is None:
