@@ -60,6 +60,25 @@ class UserQuery:
         return users
 
 
+"""
+Postman:
+
+POST: http://localhost:8000/v1/graphql
+Body: Form-data
+Key|Datatype: Value
+operations|Text: {"query": "mutation ($file: Upload!) { uploadFile(file: $file) }", "variables": { "file": null }}
+0|File: <choose file>
+map|Text: {"0": ["variables.file"]}
+
+Output:
+{
+    "data": {
+        "uploadFile": "File {filename} was successfully uploaded"
+    }
+}
+"""
+
+
 @strawberry.type
 class FileMutation:
     @strawberry.mutation(description="Upload file")
