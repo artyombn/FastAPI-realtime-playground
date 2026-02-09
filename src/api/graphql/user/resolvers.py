@@ -43,7 +43,7 @@ class UserQuery:
 
     @strawberry.field(description="Get all Users")
     @require_authentication
-    @paginate
+    @paginate(entity="user")
     def all_users(self, info, limit: int, offset: int) -> UserPage:
         users = [
             UserSchema(

@@ -12,6 +12,11 @@ def handle_check_permissions(required_permissions: list[str]):
         async def wrapper(
             *args, current_user=Depends(get_current_user_from_jwt), **kwargs
         ):
+            if current_user is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication Error: User didn't authenticate",
+                )
             user_permissions = current_user.permissions
             if not set(required_permissions).issubset(set(user_permissions)):
                 raise HTTPException(

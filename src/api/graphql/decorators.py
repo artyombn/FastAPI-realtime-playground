@@ -1,5 +1,6 @@
 from functools import wraps
 
+from src.api.graphql.products.schemas import ProductPage
 from src.api.graphql.user.schemas import UserPage
 
 
@@ -16,16 +17,33 @@ def require_authentication(func):
     return wrapper
 
 
-def paginate(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        limit = kwargs["limit"] or 10
-        offset = kwargs["offset"] or 0
-        all_items = func(*args, **kwargs)
-        total_items = len(all_items)
-        paginated_items = list(all_items)[offset : offset + limit]
-        return UserPage(
-            items=paginated_items, total_items=total_items, offset=offset, limit=limit
-        )
+def paginate(entity: str):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            limit = kwargs["limit"] or 10
+            offset = kwargs["offset"] or 0
+            all_items = func(*args, **kwargs)
+            total_items = len(all_items)
+            paginated_items = list(all_items)[offset : offset + limit]
 
-    return wrapper
+            if entity == "user":
+                return UserPage(
+                    items=paginated_items,
+                    total_items=total_items,
+                    offset=offset,
+                    limit=limit,
+                )
+            elif entity == "product":
+                return ProductPage(
+                    items=paginated_items,
+                    total_items=total_items,
+                    offset=offset,
+                    limit=limit,
+                )
+            else:
+                raise ValueError("Invalid pagination entity")
+
+        return wrapper
+
+    return decorator
