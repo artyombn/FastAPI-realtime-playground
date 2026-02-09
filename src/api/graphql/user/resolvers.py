@@ -6,7 +6,7 @@ from graphql import GraphQLError
 from pydantic import ValidationError
 from strawberry.file_uploads import Upload
 
-from src.core.settings import MEDIA_DIR
+from src.config.settings import MEDIA_DIR
 from src.api.graphql.decorators import paginate
 from src.api.graphql.decorators import require_authentication
 from src.core.user.exceptions import (
