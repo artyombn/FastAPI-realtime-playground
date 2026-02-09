@@ -22,8 +22,9 @@ class ProductService:
     def delete(self, product_id: int) -> None:
         self.manager.delete(product_id)
 
-    def get_all(self) -> list[ProductResponse]:
-        return self.manager.get_all()
+    @staticmethod
+    def get_all() -> list[ProductResponse]:
+        return product_manager.get_all()
 
 
 product_service = ProductService(product_manager)

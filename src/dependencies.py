@@ -11,8 +11,10 @@ from src.core.user.services import UserService
 
 
 def get_current_user_from_jwt(
-    token: str = Depends(APIKeyHeader(name="Authorization")),
+    token: str = Depends(APIKeyHeader(name="Authorization", auto_error=False)),
 ) -> UserResponse | None:
+    if not token:
+        return None
     try:
         user_tuple = UserService.get_current_user_from_jwt(token)
     except TokenExpiredError as e:
@@ -39,3 +41,7 @@ def get_current_user_from_jwt(
     )
 
     return user_output
+
+
+def context_dependency(current_user: str = Depends(get_current_user_from_jwt)) -> dict:
+    return {"current_user": current_user}

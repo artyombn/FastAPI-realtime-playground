@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from src.api.rest.user.decorators import handle_check_permissions
-from src.api.rest.user.dependencies import get_current_user_from_jwt
+from src.dependencies import get_current_user_from_jwt
 from src.core.permissions import Permissions
 from src.api.rest.product.decorators import handle_product_errors
 from src.core.product.entities import (
