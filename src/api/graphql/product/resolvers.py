@@ -1,7 +1,7 @@
 import strawberry
 
 from src.api.graphql.decorators import require_authentication, paginate
-from src.api.graphql.products.schemas import ProductPage, ProductSchema
+from src.api.graphql.product.schemas import ProductPage, ProductSchema
 from src.core.product.services import ProductService
 
 

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from src.api.graphql.products.schemas import ProductPage
+from src.api.graphql.product.schemas import ProductPage
 from src.api.graphql.user.schemas import UserPage
 
 
