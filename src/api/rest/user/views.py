@@ -3,18 +3,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException, Depends
 from starlette import status
-from starlette.status import HTTP_400_BAD_REQUEST
 
+from src.api.rest.user.decorators import handle_user_errors
 from src.dependencies import get_current_user_from_jwt
-from src.core.user.exceptions import (
-    UserNotFoundError,
-    UserAlreadyExistsError,
-    UserCreationError,
-    TokenCreationError,
-    TokenExpiredError,
-    TokenIsNotValidError,
-    TokenTypeIsNotValidError,
-)
+
 from src.core.permissions import Permissions
 from src.core.user.entities import (
     UserListResponse,
@@ -65,6 +57,7 @@ async def get_users() -> UserListResponse:
     summary="Get a user",
     description="Returns a user with the given ID.",
 )
+@handle_user_errors
 async def get_user_by_user_id(user_id: int) -> UserResponse:
     user = user_service.get_by_id(user_id)
 
@@ -84,6 +77,7 @@ async def get_user_by_user_id(user_id: int) -> UserResponse:
     summary="Create a new user",
     description="Creates a new user and returns the created user with an assigned ID.",
 )
+@handle_user_errors
 async def create_user(
     user: CreateUser,
     permissions: Optional[list[str]] = Query(
@@ -104,6 +98,7 @@ async def create_user(
     summary="User Login",
     description="Login user using access token and refresh token",
 )
+@handle_user_errors
 async def login(username: str, password: str) -> dict:
     user = user_service.authenticate_user(username, password)
     if user is None:
@@ -148,6 +143,7 @@ async def login(username: str, password: str) -> dict:
     summary="Refresh user",
     description="Refresh user using access token and refresh token",
 )
+@handle_user_errors
 async def refresh_user(token: str) -> str:
     username = user_service.verify_token(token, "refresh_token")
 
