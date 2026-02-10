@@ -19,6 +19,13 @@ class UserBase(BaseModel):
     is_admin: bool = False
     permissions: list[str] = Field(default_factory=list)
 
+    class Config:
+        """
+        To make possible converting SQLAlchemy model into Pydantic
+        """
+
+        from_attributes = True
+
 
 class CreateUser(UserBase):
     """
