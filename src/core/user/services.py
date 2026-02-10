@@ -13,7 +13,6 @@ from src.core.user.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from src.users.managers import user_manager
 from src.core.user.entities import (
     UserResponse,
     UserResponseWithHashedPWD,
