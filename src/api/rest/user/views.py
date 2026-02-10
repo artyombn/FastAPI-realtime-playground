@@ -22,7 +22,7 @@ from src.core.user.entities import (
     CreateUser,
 )
 from src.core.user.services import (
-    UserService,
+    user_service,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
@@ -41,7 +41,7 @@ user_router = APIRouter(
     description="Returns a list of all users with the total number of them.",
 )
 async def get_users() -> UserListResponse:
-    users = UserService.get_all()
+    users = user_service.get_all()
     output_users = [
         UserResponse(
             id=user[0],
@@ -66,10 +66,7 @@ async def get_users() -> UserListResponse:
     description="Returns a user with the given ID.",
 )
 async def get_user_by_user_id(user_id: int) -> UserResponse:
-    try:
-        user = UserService.get_by_id(user_id)
-    except UserNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    user = user_service.get_by_id(user_id)
 
     user_output = UserResponse(
         id=user_id,
@@ -96,12 +93,7 @@ async def create_user(
         enum=Permissions.list(),
     ),
 ) -> UserResponse:
-    try:
-        created_user = UserService.add(user, permissions)
-    except UserAlreadyExistsError as e:
-        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
-    except UserCreationError as e:
-        raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=str(e))
+    created_user = user_service.add(user, permissions)
 
     return created_user
 
@@ -113,7 +105,7 @@ async def create_user(
     description="Login user using access token and refresh token",
 )
 async def login(username: str, password: str) -> dict:
-    user = UserService.authenticate_user(username, password)
+    user = user_service.authenticate_user(username, password)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -140,18 +132,12 @@ async def login(username: str, password: str) -> dict:
             "refresh_token_expires": int(refresh_token_expires.total_seconds()),
         },
     )
-    try:
-        access_token = UserService.create_token(
-            data=data_access_token, expires_delta=access_token_expires
-        )
-        refresh_token = UserService.create_token(
-            data=data_refresh_token, expires_delta=refresh_token_expires
-        )
-    except TokenCreationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
-        )
+    access_token = user_service.create_token(
+        data=data_access_token, expires_delta=access_token_expires
+    )
+    refresh_token = user_service.create_token(
+        data=data_refresh_token, expires_delta=refresh_token_expires
+    )
 
     return {"user": user, "access_token": access_token, "refresh_token": refresh_token}
 
@@ -163,16 +149,9 @@ async def login(username: str, password: str) -> dict:
     description="Refresh user using access token and refresh token",
 )
 async def refresh_user(token: str) -> str:
-    try:
-        username = UserService.verify_token(token, "refresh_token")
-    except TokenExpiredError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-    except TokenIsNotValidError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except TokenTypeIsNotValidError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    username = user_service.verify_token(token, "refresh_token")
 
-    user_tuple = UserService.get_by_username(username)
+    user_tuple = user_service.get_by_username(username)
     if not user_tuple:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -194,15 +173,9 @@ async def refresh_user(token: str) -> str:
         },
     )
 
-    try:
-        access_token = UserService.create_token(
-            data=new_access_token, expires_delta=access_token_expires
-        )
-    except TokenCreationError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
-        )
+    access_token = user_service.create_token(
+        data=new_access_token, expires_delta=access_token_expires
+    )
 
     return f"Access Token was refreshed: {access_token}"
 

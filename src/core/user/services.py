@@ -7,11 +7,13 @@ import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
+from src.database.repositories.user import UserRepository, user_repository
 from src.core.user.exceptions import (
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
+    UserAlreadyExistsError,
 )
 from src.core.user.entities import (
     UserResponse,
@@ -40,8 +42,18 @@ class UserService:
     User Service for token creation/update and authorization
     """
 
-    @staticmethod
-    def add(user: CreateUser, permissions: Optional[list[str]]) -> UserResponse:
+    def __init__(self, repository: UserRepository):
+        self.repository = repository
+
+    def add(self, user: CreateUser, permissions: Optional[list[str]]) -> UserResponse:
+        if self.get_by_username(user.username):
+            raise UserAlreadyExistsError()
+
+        hashed_password = bcrypt.hashpw(
+            user.password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+        user.password = hashed_password
+
         if user.is_admin:
             new_user = AdminUser(
                 username=user.username,
@@ -56,21 +68,20 @@ class UserService:
                 permissions=permissions,
             )
 
-        return user_manager.add(new_user)
+        user_orm = self.repository.add(new_user)
+        return UserResponse.model_validate(user_orm)
 
-    @staticmethod
-    def get_by_id(user_id: int) -> UserResponse:
-        user_output = user_manager.get_by_id(user_id)
-        return user_output
+    def get_by_id(self, user_id: int) -> UserResponse | None:
+        user_orm = self.repository.get_by_id(user_id)
+        return UserResponse.model_validate(user_orm)
 
-    @staticmethod
-    def get_by_username(username: str) -> UserResponse | None:
-        user_output = user_manager.get_by_username(username)
-        return user_output
+    def get_by_username(self, username: str) -> UserResponse | None:
+        user_orm = self.repository.get_by_username(username)
+        return user_orm
 
-    @staticmethod
-    def get_all() -> list[UserResponse]:
-        return user_manager.get_all()
+    def get_all(self) -> list[UserResponse]:
+        users = self.repository.get_all()
+        return [UserResponse.model_validate(user) for user in users]
 
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -78,18 +89,17 @@ class UserService:
             plain_password.encode("utf-8"), hashed_password.encode("utf-8")
         )
 
-    @classmethod
     def authenticate_user(
-        cls, username: str, password: str
+        self, username: str, password: str
     ) -> UserResponseWithHashedPWD | None:
-        user_tuple = user_manager.get_by_username(username)
+        user_tuple = self.get_by_username(username)
 
         if not user_tuple:
             return None
 
         user_id = user_tuple[0]
         user = user_tuple[1]
-        if not cls.verify_password(password, user.password):
+        if not self.verify_password(password, user.password):
             return None
         user_output = UserResponseWithHashedPWD(
             id=user_id,
@@ -141,3 +151,6 @@ class UserService:
         username = payload.get("sub")
 
         return username
+
+
+user_service = UserService(user_repository)
