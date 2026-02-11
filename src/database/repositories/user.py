@@ -2,7 +2,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, Sequence
 
 from src.core.user.entities import CreateUser as CreateUserSchema
-from src.database.base import SessionLocal
 from src.database.models.user import UserORM
 
 
@@ -33,8 +32,9 @@ class UserRepository:
             is_admin=user_data.is_admin,
         )
         self.session.add(user)
-        self.session.commit()
+        self.session.flush()
         return user
 
 
-user_repository = UserRepository(SessionLocal())
+def user_repository_factory(session: Session):
+    return UserRepository(session)
