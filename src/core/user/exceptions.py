@@ -31,3 +31,8 @@ class TokenTypeIsNotValidError(Exception):
 class TokenCreationError(Exception):
     def __init__(self, message: str = "Authentication Error: Error creating token"):
         super().__init__(message)
+
+
+class ServiceError(Exception):
+    def __init__(self, message: str = "Failed to add user"):
+        super().__init__(message)

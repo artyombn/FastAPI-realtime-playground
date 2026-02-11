@@ -11,6 +11,7 @@ from src.core.user.exceptions import (
     TokenExpiredError,
     TokenTypeIsNotValidError,
     TokenCreationError,
+    ServiceError,
 )
 from src.dependencies import get_current_user_from_jwt
 
@@ -24,7 +25,7 @@ def handle_user_errors(func):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
         except UserAlreadyExistsError as e:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
-        except UserCreationError as e:
+        except (UserCreationError, ServiceError) as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except (TokenIsNotValidError, TokenExpiredError, TokenTypeIsNotValidError) as e:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
