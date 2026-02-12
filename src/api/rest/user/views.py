@@ -2,8 +2,11 @@ from datetime import timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException, Depends
+from sqlalchemy.orm import Session
 from starlette import status
 
+from src.core.user.services import UserService
+from src.database.db_session import get_session
 from src.api.rest.user.decorators import handle_user_errors
 from src.dependencies import get_current_user_from_jwt
 
@@ -14,7 +17,6 @@ from src.core.user.entities import (
     CreateUser,
 )
 from src.core.user.services import (
-    user_service,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
@@ -32,21 +34,11 @@ user_router = APIRouter(
     summary="Get list of users",
     description="Returns a list of all users with the total number of them.",
 )
-async def get_users() -> UserListResponse:
-    users = user_service.get_all()
-    output_users = [
-        UserResponse(
-            id=user[0],
-            username=user[1].username,
-            email=user[1].email,
-            is_admin=user[1].is_admin,
-            permissions=user[1].permissions,
-        )
-        for user in users
-    ]
+async def get_users(session: Session = Depends(get_session)) -> UserListResponse:
+    users = UserService.get_all(session)
     result = UserListResponse(
         total_users=len(users),
-        users=output_users,
+        users=users,
     )
     return result
 
@@ -58,17 +50,11 @@ async def get_users() -> UserListResponse:
     description="Returns a user with the given ID.",
 )
 @handle_user_errors
-async def get_user_by_user_id(user_id: int) -> UserResponse:
-    user = user_service.get_by_id(user_id)
-
-    user_output = UserResponse(
-        id=user_id,
-        username=user.username,
-        email=user.email,
-        is_admin=user.is_admin,
-        permissions=user.permissions,
-    )
-    return user_output
+async def get_user_by_user_id(
+    user_id: int, session: Session = Depends(get_session)
+) -> UserResponse:
+    user = UserService.get_by_id(user_id, session)
+    return user
 
 
 @user_router.post(
@@ -86,9 +72,9 @@ async def create_user(
         example=Permissions.list(),
         enum=Permissions.list(),
     ),
+    session: Session = Depends(get_session),
 ) -> UserResponse:
-    created_user = user_service.add(user, permissions)
-
+    created_user = UserService.add(user, permissions, session)
     return created_user
 
 
@@ -99,8 +85,10 @@ async def create_user(
     description="Login user using access token and refresh token",
 )
 @handle_user_errors
-async def login(username: str, password: str) -> dict:
-    user = user_service.authenticate_user(username, password)
+async def login(
+    username: str, password: str, session: Session = Depends(get_session)
+) -> dict:
+    user = UserService.authenticate_user(username, password, session)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -127,10 +115,10 @@ async def login(username: str, password: str) -> dict:
             "refresh_token_expires": int(refresh_token_expires.total_seconds()),
         },
     )
-    access_token = user_service.create_token(
+    access_token = UserService.create_token(
         data=data_access_token, expires_delta=access_token_expires
     )
-    refresh_token = user_service.create_token(
+    refresh_token = UserService.create_token(
         data=data_refresh_token, expires_delta=refresh_token_expires
     )
 
@@ -144,18 +132,15 @@ async def login(username: str, password: str) -> dict:
     description="Refresh user using access token and refresh token",
 )
 @handle_user_errors
-async def refresh_user(token: str) -> str:
-    username = user_service.verify_token(token, "refresh_token")
+async def refresh_user(token: str, session: Session = Depends(get_session)) -> str:
+    username = UserService.verify_token(token, "refresh_token")
 
-    user_tuple = user_service.get_by_username(username)
-    if not user_tuple:
+    user = UserService.get_by_username(username, session)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Wrong username or password during token refresh",
         )
-
-    user_id = user_tuple[0]
-    user = user_tuple[1]
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -163,13 +148,13 @@ async def refresh_user(token: str) -> str:
         sub=user.username,
         is_admin=user.is_admin,
         extra={
-            "user_id": user_id,
+            "user_id": user.id,
             "type": "access_token",
             "access_token_expires": int(access_token_expires.total_seconds()),
         },
     )
 
-    access_token = user_service.create_token(
+    access_token = UserService.create_token(
         data=new_access_token, expires_delta=access_token_expires
     )
 
