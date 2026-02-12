@@ -6,13 +6,11 @@ from typing import Optional
 import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
-from src.database.base import SessionLocal
 from src.database.exceptions import UnitOfWorkError
 from src.database.uow import unit_of_work
-from src.database.repositories.user import (
-    user_repository_factory,
-)
+
 from src.database.repositories.user import UserRepository
 from src.core.user.exceptions import (
     TokenCreationError,
@@ -21,6 +19,7 @@ from src.core.user.exceptions import (
     TokenTypeIsNotValidError,
     UserAlreadyExistsError,
     ServiceError,
+    UserNotFoundError,
 )
 from src.core.user.entities import (
     UserResponse,
@@ -49,11 +48,11 @@ class UserService:
     User Service for token creation/update and authorization
     """
 
-    def __init__(self, repository_factory: UserRepository):
-        self.user_repository_factory = repository_factory
-
-    def add(self, user: CreateUser, permissions: Optional[list[str]]) -> UserResponse:
-        if self.get_by_username(user.username):
+    @classmethod
+    def add(
+        cls, user: CreateUser, permissions: Optional[list[str]], session: Session
+    ) -> UserResponse:
+        if UserRepository.get_by_username(session=session, username=user.username):
             raise UserAlreadyExistsError()
 
         hashed_password = bcrypt.hashpw(
@@ -74,11 +73,10 @@ class UserService:
                 email=user.email,
                 permissions=permissions,
             )
+
         try:
             with unit_of_work() as uow:
-                user_repository = self.user_repository_factory(uow.session)
-
-                user_orm = user_repository.add(new_user)
+                user_orm = UserRepository.add(session=uow.session, user_data=new_user)
 
                 if user.is_admin:
                     another_user = AdminUser(
@@ -93,26 +91,40 @@ class UserService:
                         email="ivan@gmail.com",
                         permissions=permissions,
                     )
-                user_repository.add(another_user)
+                UserRepository.add(session=uow.session, user_data=another_user)
                 user_schema = UserResponse.model_validate(user_orm)
 
         except UnitOfWorkError:
             raise ServiceError()
         return user_schema
 
-    def get_by_id(self, user_id: int) -> UserResponse | None:
-        user_repository = self.user_repository_factory(SessionLocal())
-        user_orm = user_repository.get_by_id(user_id)
+    @classmethod
+    def get_by_id(cls, user_id: int, session: Session) -> UserResponse | None:
+        user_orm = UserRepository.get_by_id(session=session, user_id=user_id)
+        if user_orm is None:
+            raise UserNotFoundError()
         return UserResponse.model_validate(user_orm)
 
-    def get_by_username(self, username: str) -> UserResponse | None:
-        user_repository = self.user_repository_factory(SessionLocal())
-        user_orm = user_repository.get_by_username(username)
-        return user_orm
+    @classmethod
+    def get_by_username(cls, username: str, session: Session) -> UserResponse | None:
+        user_orm = UserRepository.get_by_username(session=session, username=username)
+        if user_orm is None:
+            raise UserNotFoundError()
+        return UserResponse.model_validate(user_orm)
 
-    def get_all(self) -> list[UserResponse]:
-        user_repository = self.user_repository_factory(SessionLocal())
-        users = user_repository.get_all()
+    @classmethod
+    def get_by_username_with_pwd(
+        cls, username: str, session: Session
+    ) -> UserResponseWithHashedPWD | None:
+        user_orm = UserRepository.get_by_username(session=session, username=username)
+
+        if user_orm is None:
+            return None
+        return UserResponseWithHashedPWD.model_validate(user_orm)
+
+    @classmethod
+    def get_all(cls, session: Session) -> list[UserResponse]:
+        users = UserRepository.get_all(session)
         return [UserResponse.model_validate(user) for user in users]
 
     @staticmethod
@@ -121,26 +133,19 @@ class UserService:
             plain_password.encode("utf-8"), hashed_password.encode("utf-8")
         )
 
+    @classmethod
     def authenticate_user(
-        self, username: str, password: str
+        cls, username: str, password: str, session: Session
     ) -> UserResponseWithHashedPWD | None:
-        user_orm = self.get_by_username(username)
+        user = cls.get_by_username_with_pwd(username, session)
 
-        if not user_orm:
+        if not user:
             return None
 
-        if not self.verify_password(password, user_orm.password):
+        if not cls.verify_password(password, user.password):
             return None
 
-        user_output = UserResponseWithHashedPWD(
-            id=user_orm.id,
-            username=user_orm.username,
-            password=user_orm.password,
-            email=user_orm.email,
-            is_admin=user_orm.is_admin,
-            permissions=user_orm.permissions,
-        )
-        return user_output
+        return user
 
     @staticmethod
     def create_token(data: TokenData, expires_delta: timedelta) -> str:
@@ -155,9 +160,11 @@ class UserService:
             return encoded_jwt
 
     @classmethod
-    def get_current_user_from_jwt(cls, token: str) -> UserResponse | None:
+    def get_current_user_from_jwt(
+        cls, token: str, session: Session
+    ) -> UserResponse | None:
         username = cls.verify_token(token, "access_token")
-        return cls.get_by_username(username)
+        return cls.get_by_username(username, session)
 
     @staticmethod
     def verify_token(token: str, token_type: str) -> str:
@@ -182,6 +189,3 @@ class UserService:
         username = payload.get("sub")
 
         return username
-
-
-user_service = UserService(user_repository_factory)
