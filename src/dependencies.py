@@ -1,6 +1,8 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
+from sqlalchemy.orm import Session
 
+from src.database.db_session import get_session
 from src.core.user.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
@@ -12,11 +14,12 @@ from src.core.user.services import UserService
 
 def get_current_user_from_jwt(
     token: str = Depends(APIKeyHeader(name="Authorization", auto_error=False)),
+    session: Session = Depends(get_session),
 ) -> UserResponse | None:
     if not token:
         return None
     try:
-        user_tuple = UserService.get_current_user_from_jwt(token)
+        user = UserService.get_current_user_from_jwt(token, session)
     except TokenExpiredError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except TokenIsNotValidError as e:
@@ -24,23 +27,12 @@ def get_current_user_from_jwt(
     except TokenTypeIsNotValidError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
-    if not user_tuple:
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
 
-    user_id = user_tuple[0]
-    user = user_tuple[1]
-
-    user_output = UserResponse(
-        id=user_id,
-        username=user.username,
-        email=user.email,
-        is_admin=user.is_admin,
-        permissions=user.permissions,
-    )
-
-    return user_output
+    return UserResponse.model_validate(user)
 
 
 def context_dependency(current_user: str = Depends(get_current_user_from_jwt)) -> dict:
