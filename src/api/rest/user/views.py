@@ -58,13 +58,13 @@ async def get_user_by_user_id(
 
 
 @user_router.post(
-    "/create",
+    "/register",
     response_model=UserResponse,
-    summary="Create a new user",
+    summary="Register a new user",
     description="Creates a new user and returns the created user with an assigned ID.",
 )
 @handle_user_errors
-async def create_user(
+async def register_user(
     user: CreateUser,
     permissions: Optional[list[str]] = Query(
         default=None,
