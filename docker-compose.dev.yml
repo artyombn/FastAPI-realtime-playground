@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi_app
-    command: uvicorn src.main:app --host 0.0.0.0 --reload
+    command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --reload"
     depends_on:
       - postgres
     volumes:
