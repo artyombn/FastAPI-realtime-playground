@@ -1,13 +1,10 @@
 import logging
 import os
-from pathlib import Path
+from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-SRC_DIR = BASE_DIR / "src"
-MEDIA_DIR = SRC_DIR / "media"
-MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+from src.config.paths import BASE_DIR
 
 log = logging.getLogger(__name__)
 
@@ -50,4 +47,6 @@ class Settings(BaseSettings):
         )
 
 
-settings = Settings()
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
