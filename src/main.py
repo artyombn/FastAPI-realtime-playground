@@ -1,12 +1,15 @@
+from contextlib import asynccontextmanager
+
 import strawberry
 
 from fastapi import FastAPI, APIRouter
 from starlette.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
+from src.database.db_helper import db_helper
+from src.config.logger import setup_logging
 from src.config.paths import MEDIA_DIR
 
-from src.config.logger import setup_logging
 from src.dependencies import context_dependency
 from src.api.graphql.resolvers import Query, Mutation
 from src.api.rest.product.views import product_router
@@ -14,9 +17,18 @@ from src.api.rest.user.views import user_router
 
 setup_logging()
 
-app = FastAPI()
-schema = strawberry.Schema(query=Query, mutation=Mutation)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+
+    yield
+
+    await db_helper.dispose()
+
+
+app = FastAPI(lifespan=lifespan)
+
+schema = strawberry.Schema(query=Query, mutation=Mutation)
 # API routers
 api_v1_router = APIRouter(prefix="/v1/api")
 api_v1_router.include_router(product_router)
