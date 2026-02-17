@@ -1,8 +1,8 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.db_session import get_session
+from src.database.session import get_async_session
 from src.core.user.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
@@ -12,14 +12,14 @@ from src.core.user.entities import UserResponse
 from src.core.user.services import UserService
 
 
-def get_current_user_from_jwt(
+async def get_current_user_from_jwt(
     token: str = Depends(APIKeyHeader(name="Authorization", auto_error=False)),
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_async_session),
 ) -> UserResponse | None:
     if not token:
         return None
     try:
-        user = UserService.get_current_user_from_jwt(token, session)
+        user = await UserService.get_current_user_from_jwt(token, session)
     except TokenExpiredError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except TokenIsNotValidError as e:

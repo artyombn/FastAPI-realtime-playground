@@ -6,9 +6,8 @@ from typing import Optional
 import bcrypt
 from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.exceptions import UnitOfWorkError
 from src.database.uow import unit_of_work
 
 from src.database.repositories.user import UserRepository
@@ -18,7 +17,6 @@ from src.core.user.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
     UserAlreadyExistsError,
-    ServiceError,
     UserNotFoundError,
 )
 from src.core.user.entities import (
@@ -49,10 +47,15 @@ class UserService:
     """
 
     @classmethod
-    def add(
-        cls, user: CreateUser, permissions: Optional[list[str]], session: Session
+    async def create(
+        cls,
+        user: CreateUser,
+        permissions: Optional[list[str]],
+        session: AsyncSession,
     ) -> UserResponse:
-        if UserRepository.get_by_username(session=session, username=user.username):
+        if await UserRepository.get_by_username(
+            session=session, username=user.username
+        ):
             raise UserAlreadyExistsError()
 
         hashed_password = bcrypt.hashpw(
@@ -74,57 +77,62 @@ class UserService:
                 permissions=permissions,
             )
 
-        try:
-            with unit_of_work() as uow:
-                user_orm = UserRepository.add(session=uow.session, user_data=new_user)
-
-                if user.is_admin:
-                    another_user = AdminUser(
-                        username="ivan",
-                        password=user.password,
-                        email="ivan@gmail.com",
-                    )
-                else:
-                    another_user = RegularUser(
-                        username="ivan",
-                        password=user.password,
-                        email="ivan@gmail.com",
-                        permissions=permissions,
-                    )
-                UserRepository.add(session=uow.session, user_data=another_user)
-                user_schema = UserResponse.model_validate(user_orm)
-
-        except UnitOfWorkError:
-            raise ServiceError()
+        async with unit_of_work(session) as uow:
+            # if user.is_admin:
+            #     another_user = AdminUser(
+            #         username="kolia",
+            #         password=user.password,
+            #         email="kolia@gmail.com",
+            #     )
+            # else:
+            #     another_user = RegularUser(
+            #         username="kolia",
+            #         password=user.password,
+            #         email="kolia@gmail.com",
+            #         permissions=permissions,
+            #     )
+            # await UserRepository.create(session=uow.session, user_data=another_user)
+            user_orm = await UserRepository.create(
+                session=uow.session, user_data=new_user
+            )
+            user_schema = UserResponse.model_validate(user_orm)
         return user_schema
 
     @classmethod
-    def get_by_id(cls, user_id: int, session: Session) -> UserResponse | None:
-        user_orm = UserRepository.get_by_id(session=session, user_id=user_id)
+    async def get_by_id(
+        cls, user_id: int, session: AsyncSession
+    ) -> UserResponse | None:
+        user_orm = await UserRepository.get_by_id(session=session, user_id=user_id)
         if user_orm is None:
             raise UserNotFoundError()
         return UserResponse.model_validate(user_orm)
 
     @classmethod
-    def get_by_username(cls, username: str, session: Session) -> UserResponse | None:
-        user_orm = UserRepository.get_by_username(session=session, username=username)
+    async def get_by_username(
+        cls, username: str, session: AsyncSession
+    ) -> UserResponse | None:
+        user_orm = await UserRepository.get_by_username(
+            session=session, username=username
+        )
         if user_orm is None:
             raise UserNotFoundError()
         return UserResponse.model_validate(user_orm)
 
     @classmethod
-    def get_by_username_with_pwd(
-        cls, username: str, session: Session
+    async def get_by_username_with_pwd(
+        cls, username: str, session: AsyncSession
     ) -> UserResponseWithHashedPWD | None:
-        user_orm = UserRepository.get_by_username(session=session, username=username)
+        user_orm = await UserRepository.get_by_username(
+            session=session, username=username
+        )
 
         if user_orm is None:
             return None
         return UserResponseWithHashedPWD.model_validate(user_orm)
 
     @classmethod
-    def get_all(cls, session: Session) -> list[UserResponse]:
-        users = UserRepository.get_all(session)
+    async def get_all(cls, session: AsyncSession) -> list[UserResponse]:
+        users = await UserRepository.get_all(session)
         return [UserResponse.model_validate(user) for user in users]
 
     @staticmethod
@@ -134,10 +142,10 @@ class UserService:
         )
 
     @classmethod
-    def authenticate_user(
-        cls, username: str, password: str, session: Session
+    async def authenticate_user(
+        cls, username: str, password: str, session: AsyncSession
     ) -> UserResponseWithHashedPWD | None:
-        user = cls.get_by_username_with_pwd(username, session)
+        user = await cls.get_by_username_with_pwd(username, session)
 
         if not user:
             return None
@@ -160,11 +168,11 @@ class UserService:
             return encoded_jwt
 
     @classmethod
-    def get_current_user_from_jwt(
-        cls, token: str, session: Session
+    async def get_current_user_from_jwt(
+        cls, token: str, session: AsyncSession
     ) -> UserResponse | None:
         username = cls.verify_token(token, "access_token")
-        return cls.get_by_username(username, session)
+        return await cls.get_by_username(username, session)
 
     @staticmethod
     def verify_token(token: str, token_type: str) -> str:

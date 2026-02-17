@@ -38,6 +38,17 @@ class Settings(BaseSettings):
     def get_db_url(self) -> str:
         if self.DOCKER:
             return (
+                f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
+                f"{self.DB_HOST_DOCKER}:{self.DB_PORT}/{self.DB_NAME}"
+            )
+        return (
+            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
+            f"{self.DB_HOST_LOCAL}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
+    def get_sync_db_url(self) -> str:
+        if self.DOCKER:
+            return (
                 f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}@"
                 f"{self.DB_HOST_DOCKER}:{self.DB_PORT}/{self.DB_NAME}"
             )

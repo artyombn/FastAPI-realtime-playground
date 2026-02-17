@@ -2,11 +2,11 @@ from datetime import timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Query, HTTPException, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from src.core.user.services import UserService
-from src.database.db_session import get_session
+from src.database.session import get_async_session
 from src.api.rest.user.decorators import handle_user_errors
 from src.dependencies import get_current_user_from_jwt
 
@@ -34,8 +34,10 @@ user_router = APIRouter(
     summary="Get list of users",
     description="Returns a list of all users with the total number of them.",
 )
-async def get_users(session: Session = Depends(get_session)) -> UserListResponse:
-    users = UserService.get_all(session)
+async def get_users(
+    session: AsyncSession = Depends(get_async_session),
+) -> UserListResponse:
+    users = await UserService.get_all(session)
     result = UserListResponse(
         total_users=len(users),
         users=users,
@@ -51,9 +53,9 @@ async def get_users(session: Session = Depends(get_session)) -> UserListResponse
 )
 @handle_user_errors
 async def get_user_by_user_id(
-    user_id: int, session: Session = Depends(get_session)
+    user_id: int, session: AsyncSession = Depends(get_async_session)
 ) -> UserResponse:
-    user = UserService.get_by_id(user_id, session)
+    user = await UserService.get_by_id(user_id, session)
     return user
 
 
@@ -72,9 +74,9 @@ async def register_user(
         example=Permissions.list(),
         enum=Permissions.list(),
     ),
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_async_session),
 ) -> UserResponse:
-    created_user = UserService.add(user, permissions, session)
+    created_user = await UserService.create(user, permissions, session)
     return created_user
 
 
@@ -86,9 +88,9 @@ async def register_user(
 )
 @handle_user_errors
 async def login(
-    username: str, password: str, session: Session = Depends(get_session)
+    username: str, password: str, session: AsyncSession = Depends(get_async_session)
 ) -> dict:
-    user = UserService.authenticate_user(username, password, session)
+    user = await UserService.authenticate_user(username, password, session)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -132,10 +134,12 @@ async def login(
     description="Refresh user using access token and refresh token",
 )
 @handle_user_errors
-async def refresh_user(token: str, session: Session = Depends(get_session)) -> str:
+async def refresh_user(
+    token: str, session: AsyncSession = Depends(get_async_session)
+) -> str:
     username = UserService.verify_token(token, "refresh_token")
 
-    user = UserService.get_by_username(username, session)
+    user = await UserService.get_by_username(username, session)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
