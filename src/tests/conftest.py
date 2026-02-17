@@ -53,14 +53,25 @@ async def db_session(engine) -> AsyncGenerator[AsyncSession, None]:
         await session.rollback()
 
 
-@pytest.fixture(scope="module")
-def client():
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+@asynccontextmanager
+async def _test_unit_of_work(db_session: AsyncSession):
+    uow = UnitOfWork(db_session)
+    try:
+        yield uow
+        await uow.commit()
+    except IntegrityError as e:
+        await uow.rollback()
+        raise UserAlreadyExistsError() from e
+    except SQLAlchemyError:
+        await uow.rollback()
+        raise
+
+
+@pytest.fixture
+def patch_uow(monkeypatch):
+    from src.core.user import services
+
+    monkeypatch.setattr(services, "unit_of_work", _test_unit_of_work)
 
 
 @pytest.fixture
