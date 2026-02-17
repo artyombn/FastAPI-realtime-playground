@@ -20,6 +20,11 @@ from src.database.db_helper import db_helper
 
 @pytest.fixture(scope="session")
 def app_database_url() -> str:
+    """
+    Возвращает URL базы данных для тестового engine.
+    Используется для инициализации подключения в тестовой сессии.
+    """
+
     from src.config.settings import get_settings
 
     settings = get_settings()
@@ -28,7 +33,12 @@ def app_database_url() -> str:
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def engine(app_database_url) -> AsyncGenerator[AsyncEngine, None]:
-    """Создаёт тестовый engine один раз для всех тестов"""
+    """
+    Создаёт асинхронный engine для тестов на всю тестовую сессию.
+
+    Перед запуском тестов создаёт все таблицы, после завершения — удаляет их и освобождает ресурсы engine.
+    """
+
     engine = create_async_engine(app_database_url, echo=False)
 
     async with engine.begin() as conn:
@@ -42,6 +52,12 @@ async def engine(app_database_url) -> AsyncGenerator[AsyncEngine, None]:
 
 @pytest_asyncio.fixture(scope="function", loop_scope="session")
 async def db_session(engine) -> AsyncGenerator[AsyncSession, None]:
+    """
+    Предоставляет новую асинхронную сессию для каждого теста.
+
+    После выполнения теста выполняет rollback, обеспечивая изоляцию данных между тестами.
+    """
+
     factory = async_sessionmaker(
         bind=engine,
         expire_on_commit=False,
@@ -55,6 +71,12 @@ async def db_session(engine) -> AsyncGenerator[AsyncSession, None]:
 
 @asynccontextmanager
 async def _test_unit_of_work(db_session: AsyncSession):
+    """
+    Тестовая реализация Unit of Work.
+
+    Использует переданную тестовую сессию и не закрывает её после выполнения, чтобы избежать ошибок при повторном использовании в рамках одного теста.
+    """
+
     uow = UnitOfWork(db_session)
     try:
         yield uow
@@ -69,6 +91,12 @@ async def _test_unit_of_work(db_session: AsyncSession):
 
 @pytest.fixture
 def patch_uow(monkeypatch):
+    """
+    Подменяет unit_of_work в сервисах на тестовую реализацию.
+
+    Оригинальный UOW закрывает сессию после выхода из контекста, что приводит к ошибкам при повторных операциях в тестах.
+    """
+
     from src.core.user import services
 
     monkeypatch.setattr(services, "unit_of_work", _test_unit_of_work)
@@ -76,6 +104,12 @@ def patch_uow(monkeypatch):
 
 @pytest.fixture
 def session_override(db_session: AsyncSession):
+    """
+    Переопределяет зависимость FastAPI get_session на тестовую сессию.
+
+    Позволяет использовать одну и ту же сессию в интеграционных тестах через TestClient.
+    """
+
     async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
@@ -87,7 +121,9 @@ def session_override(db_session: AsyncSession):
 @pytest_asyncio.fixture(scope="function", loop_scope="session")
 async def client(session_override) -> AsyncGenerator[AsyncClient, None]:
     """
-    HTTP клиент для интеграционных тестов.
+    HTTP-клиент для интеграционных тестов FastAPI-приложения.
+
+    Использует ASGITransport и переопределённую тестовую сессию.
     """
     transport = ASGITransport(app=main_app)
     async with AsyncClient(
