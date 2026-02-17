@@ -18,3 +18,6 @@ test:
 
 test-local:
 	pytest -vv --maxfail=5
+
+fixtures:
+	pytest --fixtures
