@@ -1,33 +1,36 @@
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.exceptions import UnitOfWorkError
-from src.database.base import SessionLocal
+from src.core.user.exceptions import UserAlreadyExistsError
 
 
 class UnitOfWork:
-    def __init__(self):
-        self.session = SessionLocal()
+    def __init__(self, session: AsyncSession):
+        self.session = session
 
-    def commit(self):
-        self.session.commit()
+    async def commit(self):
+        await self.session.commit()
 
-    def rollback(self):
-        self.session.rollback()
+    async def rollback(self):
+        await self.session.rollback()
 
-    def close(self):
-        self.session.close()
+    async def close(self):
+        await self.session.close()
 
 
-@contextmanager
-def unit_of_work():
-    uow = UnitOfWork()
+@asynccontextmanager
+async def unit_of_work(session: AsyncSession):
+    uow = UnitOfWork(session)
     try:
         yield uow
-        uow.commit()
-    except (SQLAlchemyError, IntegrityError) as e:
-        uow.rollback()
-        raise UnitOfWorkError() from e
+        await uow.commit()
+    except IntegrityError as e:
+        await uow.rollback()
+        raise UserAlreadyExistsError() from e
+    except SQLAlchemyError:
+        await uow.rollback()
+        raise
     finally:
-        uow.close()
+        await uow.close()
