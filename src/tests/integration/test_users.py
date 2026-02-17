@@ -1,9 +1,10 @@
-from sqlalchemy.orm import Session
-from starlette.testclient import TestClient
+import pytest
+from httpx import AsyncClient
 
 
-def test_register_user(client: TestClient, db_session: Session):
-    response = client.post(
+@pytest.mark.asyncio
+async def test_register_user(client: AsyncClient):
+    response = await client.post(
         "/v1/users/register",
         json={
             "username": "test_user2",
