@@ -13,6 +13,8 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    networks:
+      - dev_network
 
   postgres:
     image: postgres:latest
@@ -23,6 +25,8 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data/pgdata
+    networks:
+      - dev_network
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -35,7 +39,13 @@ services:
       - .env
     volumes:
       - pgadmin:/var/lib/pgadmin
+    networks:
+      - dev_network
 
 volumes:
   pgdata:
   pgadmin:
+
+networks:
+  dev_network:
+    driver: bridge
