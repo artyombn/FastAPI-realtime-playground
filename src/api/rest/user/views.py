@@ -5,8 +5,8 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from src.database.db_helper import db_helper
 from src.core.user.services import UserService
-from src.database.session import get_async_session
 from src.api.rest.user.decorators import handle_user_errors
 from src.dependencies import get_current_user_from_jwt
 
@@ -35,7 +35,7 @@ user_router = APIRouter(
     description="Returns a list of all users with the total number of them.",
 )
 async def get_users(
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(db_helper.get_session),
 ) -> UserListResponse:
     users = await UserService.get_all(session)
     result = UserListResponse(
@@ -53,7 +53,7 @@ async def get_users(
 )
 @handle_user_errors
 async def get_user_by_user_id(
-    user_id: int, session: AsyncSession = Depends(get_async_session)
+    user_id: int, session: AsyncSession = Depends(db_helper.get_session)
 ) -> UserResponse:
     user = await UserService.get_by_id(user_id, session)
     return user
@@ -74,7 +74,7 @@ async def register_user(
         example=Permissions.list(),
         enum=Permissions.list(),
     ),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(db_helper.get_session),
 ) -> UserResponse:
     created_user = await UserService.create(user, permissions, session)
     return created_user
@@ -88,7 +88,7 @@ async def register_user(
 )
 @handle_user_errors
 async def login(
-    username: str, password: str, session: AsyncSession = Depends(get_async_session)
+    username: str, password: str, session: AsyncSession = Depends(db_helper.get_session)
 ) -> dict:
     user = await UserService.authenticate_user(username, password, session)
     if user is None:
@@ -135,7 +135,7 @@ async def login(
 )
 @handle_user_errors
 async def refresh_user(
-    token: str, session: AsyncSession = Depends(get_async_session)
+    token: str, session: AsyncSession = Depends(db_helper.get_session)
 ) -> str:
     username = UserService.verify_token(token, "refresh_token")
 

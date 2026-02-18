@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.session import get_async_session
+from src.database.db_helper import db_helper
 from src.core.user.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
@@ -14,7 +14,7 @@ from src.core.user.services import UserService
 
 async def get_current_user_from_jwt(
     token: str = Depends(APIKeyHeader(name="Authorization", auto_error=False)),
-    session: AsyncSession = Depends(get_async_session),
+    session: AsyncSession = Depends(db_helper.get_session),
 ) -> UserResponse | None:
     if not token:
         return None
