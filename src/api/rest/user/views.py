@@ -15,6 +15,7 @@ from src.core.user.entities import (
     UserListResponse,
     UserResponse,
     CreateUser,
+    UserLogin,
 )
 from src.core.user.services import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -80,17 +81,19 @@ async def register_user(
     return created_user
 
 
-@user_router.get(
-    "login",
+@user_router.post(
+    "/login",
     response_model=dict,
     summary="User Login",
     description="Login user using access token and refresh token",
 )
 @handle_user_errors
 async def login(
-    username: str, password: str, session: AsyncSession = Depends(db_helper.get_session)
+    user: UserLogin, session: AsyncSession = Depends(db_helper.get_session)
 ) -> dict:
-    user = await UserService.authenticate_user(username, password, session)
+    user = await UserService.authenticate_user(
+        username=user.username, password=user.password, session=session
+    )
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -100,7 +103,7 @@ async def login(
     refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
     data_access_token = TokenData(
-        sub=username,
+        sub=user.username,
         is_admin=user.is_admin,
         extra={
             "user_id": user.id,
@@ -109,7 +112,7 @@ async def login(
         },
     )
     data_refresh_token = TokenData(
-        sub=username,
+        sub=user.username,
         is_admin=user.is_admin,
         extra={
             "user_id": user.id,
