@@ -1,21 +1,34 @@
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.database.models.user import UserORM
 
 
 @pytest.mark.asyncio
-async def test_register_user(client: AsyncClient):
+async def test_register_user(client: AsyncClient, db_session: AsyncSession):
     response = await client.post(
-        "/v1/users/register",
+        "/v1/api/users/register",
         json={
             "username": "test_user2",
-            "password": "MyCat@Barsik7",
             "email": "test_user2@gmail.com",
+            "password": "MyCat@Barsik7",
         },
     )
 
-    assert response.status_code == 404
+    assert response.status_code == 200
 
-    # body = response.json()
-    # assert body["username"] == "test_user2"
-    # assert body["email"] == "test_user2@gmail.com"
-    # assert "id" in body
+    body = response.json()
+    assert body["username"] == "test_user2"
+    assert body["email"] == "test_user2@gmail.com"
+    assert "id" in body
+
+    stmt = select(UserORM).where(UserORM.username == "test_user2")
+    result = await db_session.execute(stmt)
+    found = result.scalar_one_or_none()
+
+    assert found is not None
+    assert body["id"] == found.id
+    assert found.username == "test_user2"
+    assert found.email == "test_user2@gmail.com"
