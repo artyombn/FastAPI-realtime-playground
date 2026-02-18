@@ -112,3 +112,12 @@ class UserListResponse(BaseModel):
 
     total_users: int
     users: list[UserResponse]
+
+
+class UserLogin(BaseModel):
+    """
+    UserLogin schema for login user
+    """
+
+    username: str = Field(description="Username")
+    password: str = Field(description="Password")
