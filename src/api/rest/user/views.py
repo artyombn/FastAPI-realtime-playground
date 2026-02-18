@@ -69,7 +69,7 @@ async def get_user_by_user_id(
 async def register_user(
     user: CreateUser,
     permissions: Optional[list[str]] = Query(
-        default=None,
+        default=[],
         title="Permissions",
         example=Permissions.list(),
         enum=Permissions.list(),
