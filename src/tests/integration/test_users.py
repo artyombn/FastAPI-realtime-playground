@@ -107,3 +107,17 @@ async def test_user_login(client: AsyncClient, db_session: AsyncSession):
     )
 
     assert response.status_code == HTTPStatus.OK
+
+
+@pytest.mark.asyncio
+async def test_user_login_failed(client: AsyncClient, db_session: AsyncSession):
+    response = await client.post(
+        "/v1/api/users/login",
+        json={
+            "username": "test_user_login",
+            "password": "MyCat@",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {"detail": "Incorrect username or password"}
