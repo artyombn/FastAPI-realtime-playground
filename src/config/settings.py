@@ -2,15 +2,17 @@ import logging
 import os
 from functools import lru_cache
 
+from dotenv import dotenv_values
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.config.paths import BASE_DIR
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 class Settings(BaseSettings):
-    DOCKER: bool = True
+    DOCKER: bool = False
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST_LOCAL: str
@@ -58,6 +60,38 @@ class Settings(BaseSettings):
         )
 
 
+class TestSettings(BaseSettings):
+    DOCKER: bool = False
+    DB_USER: str
+    DB_PASSWORD: str
+    DB_HOST_LOCAL: str
+    DB_HOST_DOCKER: str
+    DB_PORT: int
+    DB_NAME: str
+
+    model_config = SettingsConfigDict(
+        env_file=os.path.join(BASE_DIR, ".env.test"),
+        extra="allow",
+    )
+
+    def test_get_db_url(self) -> str:
+        if self.DOCKER:
+            return (
+                f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
+                f"{self.DB_HOST_DOCKER}:5432/{self.DB_NAME}"
+            )
+        return (
+            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
+            f"{self.DB_HOST_LOCAL}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+@lru_cache
+def get_test_settings() -> TestSettings:
+    env_vars = dotenv_values(os.path.join(BASE_DIR, ".env.test"))
+    return TestSettings(**env_vars)

@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Any
 import pytest
@@ -17,29 +18,33 @@ from src.main import app as main_app
 from src.database.base import Base
 from src.database.db_helper import db_helper
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
 
 @pytest.fixture(scope="session")
-def app_database_url() -> str:
+def test_database_url() -> str:
     """
     Возвращает URL базы данных для тестового engine.
     Используется для инициализации подключения в тестовой сессии.
     """
 
-    from src.config.settings import get_settings
+    from src.config.settings import get_test_settings
 
-    settings = get_settings()
-    return settings.get_db_url()
+    settings = get_test_settings()
+    log.debug(f"DB_TEST_URL = {settings.test_get_db_url()}")
+    return settings.test_get_db_url()
 
 
 @pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def engine(app_database_url) -> AsyncGenerator[AsyncEngine, None]:
+async def engine(test_database_url) -> AsyncGenerator[AsyncEngine, None]:
     """
     Создаёт асинхронный engine для тестов на всю тестовую сессию.
 
     Перед запуском тестов создаёт все таблицы, после завершения — удаляет их и освобождает ресурсы engine.
     """
 
-    engine = create_async_engine(app_database_url, echo=False)
+    engine = create_async_engine(test_database_url, echo=False)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
