@@ -167,9 +167,14 @@ async def refresh_user(
 
 @user_router.put(
     "/me",
-    response_model=UserResponse,
+    response_model=Optional[UserResponse],
     summary="Get my info",
     description="Get info about myself with hashed password",
 )
 async def me(current_user=Depends(get_current_user_from_jwt)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication Error: You didn't authenticate",
+        )
     return current_user
