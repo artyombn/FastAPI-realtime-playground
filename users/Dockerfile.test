@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN pip install --upgrade pip poetry
+
+RUN poetry config virtualenvs.create true \
+    && poetry config virtualenvs.in-project true
+
+COPY pyproject.toml poetry.lock ./
+
+RUN poetry install --no-interaction --no-ansi
+
+COPY ./src ./src
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["pytest", "-v", "--maxfail=5"]
