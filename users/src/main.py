@@ -8,7 +8,7 @@ from strawberry.fastapi import GraphQLRouter
 
 from src.database.db_helper import db_helper
 from src.config.logger import setup_logging
-from src.config.paths import MEDIA_DIR
+from src.config.paths import MEDIA_USERS_DIR
 
 from src.dependencies import context_dependency
 from src.api.graphql.resolvers import Query, Mutation
@@ -42,7 +42,7 @@ graphql_app = GraphQLRouter(
 
 app.include_router(api_v1_router)
 app.include_router(graphql_app, prefix="/v1/graphql")
-app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
+app.mount("/media", StaticFiles(directory=MEDIA_USERS_DIR), name="media")
 
 
 @app.get("/")

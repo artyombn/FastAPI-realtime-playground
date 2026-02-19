@@ -6,7 +6,7 @@ from graphql import GraphQLError
 from pydantic import ValidationError
 from strawberry.file_uploads import Upload
 
-from src.config.paths import MEDIA_DIR
+from src.config.paths import MEDIA_USERS_DIR
 from src.api.graphql.decorators import paginate
 from src.api.graphql.decorators import require_authentication
 from src.core.user.exceptions import (
@@ -86,7 +86,7 @@ class FileMutation:
         content = await file.read()
         filename = file.filename
 
-        file_path = MEDIA_DIR / f"uploaded_{filename}"
+        file_path = MEDIA_USERS_DIR / f"uploaded_{filename}"
         with open(file_path, "wb") as f:
             f.write(content)
         return f"File {filename} was successfully uploaded"
