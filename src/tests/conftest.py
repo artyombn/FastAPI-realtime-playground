@@ -42,6 +42,8 @@ async def engine(test_database_url) -> AsyncGenerator[AsyncEngine, None]:
     Создаёт асинхронный engine для тестов на всю тестовую сессию.
 
     Перед запуском тестов создаёт все таблицы, после завершения — удаляет их и освобождает ресурсы engine.
+
+    Для полной изоляции тестов (каждый тест = своя БД) -> scope="function"
     """
 
     engine = create_async_engine(test_database_url, echo=False)
