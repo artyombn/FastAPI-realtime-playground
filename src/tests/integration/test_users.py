@@ -263,3 +263,13 @@ async def test_get_me(client: AsyncClient, db_session: AsyncSession):
     assert response_get_me.json()["id"] == login_response.json()["user"]["id"]
     assert response_get_me.json()["username"] == "test_user6"
     assert response_get_me.json()["email"] == "test_user6@gmail.com"
+
+
+@pytest.mark.asyncio
+async def test_get_me_auth_failed(client: AsyncClient, db_session: AsyncSession):
+    response = await client.get("/v1/api/users/me")
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {
+        "detail": "Authentication Error: You didn't authenticate"
+    }
