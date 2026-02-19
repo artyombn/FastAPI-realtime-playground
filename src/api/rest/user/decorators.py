@@ -59,3 +59,27 @@ def handle_check_permissions(required_permissions: list[str]):
         return wrapper
 
     return decorator
+
+
+def handle_check_is_admin(permissions: list[str]):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(
+            *args, current_user=Depends(get_current_user_from_jwt), **kwargs
+        ):
+            if current_user is None:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication Error: User didn't authenticate",
+                )
+
+            if not current_user.is_admin:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="This user doesn't have necessary permissions",
+                )
+            return await func(*args, current_user=current_user, **kwargs)
+
+        return wrapper
+
+    return decorator

@@ -7,7 +7,7 @@ from starlette import status
 
 from src.database.db_helper import db_helper
 from src.core.user.services import UserService
-from src.api.rest.user.decorators import handle_user_errors
+from src.api.rest.user.decorators import handle_user_errors, handle_check_is_admin
 from src.dependencies import get_current_user_from_jwt
 
 from src.core.permissions import Permissions
@@ -35,22 +35,11 @@ user_router = APIRouter(
     summary="Get list of users",
     description="Returns a list of all users with the total number of them.",
 )
+@handle_check_is_admin([])
 async def get_users(
     session: AsyncSession = Depends(db_helper.get_session),
     current_user=Depends(get_current_user_from_jwt),
 ) -> UserListResponse:
-    if current_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication Error: User didn't authenticate",
-        )
-
-    if not current_user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This user doesn't have necessary permissions",
-        )
-
     users = await UserService.get_all(session)
     result = UserListResponse(
         total_users=len(users),
@@ -65,6 +54,7 @@ async def get_users(
     summary="Get a user",
     description="Returns a user with the given ID.",
 )
+@handle_check_is_admin([])
 @handle_user_errors
 async def get_user_by_user_id(
     user_id: int, session: AsyncSession = Depends(db_helper.get_session)
