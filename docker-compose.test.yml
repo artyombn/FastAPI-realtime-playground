@@ -1,20 +1,20 @@
 services:
-  test_web:
+  test_users_app:
     build:
-      context: .
+      context: users
       dockerfile: Dockerfile.test
-    container_name: test_app
+    container_name: test_users_app
     depends_on:
-      test_db:
+      test_users_db:
         condition: service_healthy
     ports:
       - "7000:7000"
     env_file:
       - .env.test
 
-  test_db:
+  test_users_db:
     image: postgres:16
-    container_name: postgres_test
+    container_name: test_users_db
     env_file:
       - .env.test
     ports:
