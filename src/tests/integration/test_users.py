@@ -18,8 +18,8 @@ async def test_register_user(client: AsyncClient, db_session: AsyncSession):
     response = await client.post(
         "/v1/api/users/register",
         json={
-            "username": "test_user2",
-            "email": "test_user2@gmail.com",
+            "username": "test_user1",
+            "email": "test_user1@gmail.com",
             "password": "MyCat@Barsik7",
         },
     )
@@ -27,18 +27,18 @@ async def test_register_user(client: AsyncClient, db_session: AsyncSession):
     assert response.status_code == HTTPStatus.OK
 
     body = response.json()
-    assert body["username"] == "test_user2"
-    assert body["email"] == "test_user2@gmail.com"
+    assert body["username"] == "test_user1"
+    assert body["email"] == "test_user1@gmail.com"
     assert "id" in body
 
-    stmt = select(UserORM).where(UserORM.username == "test_user2")
+    stmt = select(UserORM).where(UserORM.username == "test_user1")
     result = await db_session.execute(stmt)
     found = result.scalar_one_or_none()
 
     assert found is not None
     assert body["id"] == found.id
-    assert found.username == "test_user2"
-    assert found.email == "test_user2@gmail.com"
+    assert found.username == "test_user1"
+    assert found.email == "test_user1@gmail.com"
 
 
 @pytest.mark.asyncio
@@ -47,26 +47,26 @@ async def test_register_user_already_exists(
 ):
     db_session.add(
         UserORM(
-            username="test_user3",
-            email="test_user3@gmail.com",
+            username="test_user2",
+            email="test_user2@gmail.com",
             password="MyCat@Barsik7",
         )
     )
     await db_session.commit()
 
-    stmt = select(UserORM).where(UserORM.email == "test_user3@gmail.com")
+    stmt = select(UserORM).where(UserORM.email == "test_user2@gmail.com")
     result = await db_session.execute(stmt)
     found = result.scalar_one_or_none()
 
     assert found is not None
-    assert found.username == "test_user3"
-    assert found.email == "test_user3@gmail.com"
+    assert found.username == "test_user2"
+    assert found.email == "test_user2@gmail.com"
 
     response = await client.post(
         "/v1/api/users/register",
         json={
-            "username": "test_user3",
-            "email": "test_user3@gmail.com",
+            "username": "test_user2",
+            "email": "test_user2@gmail.com",
             "password": "MyCat@Barsik7",
         },
     )
@@ -85,14 +85,14 @@ async def test_user_login(client: AsyncClient, db_session: AsyncSession):
 
     db_session.add(
         UserORM(
-            username="test_user_login",
-            email="test_user_login@gmail.com",
+            username="test_user3",
+            email="test_user3@gmail.com",
             password=hashed_password,
         )
     )
     await db_session.commit()
 
-    stmt = select(UserORM).where(UserORM.username == "test_user_login")
+    stmt = select(UserORM).where(UserORM.username == "test_user3")
     result = await db_session.execute(stmt)
     found = result.scalar_one_or_none()
 
@@ -101,7 +101,7 @@ async def test_user_login(client: AsyncClient, db_session: AsyncSession):
     response = await client.post(
         "/v1/api/users/login",
         json={
-            "username": "test_user_login",
+            "username": "test_user3",
             "password": "MyCat@Barsik7",
         },
     )
@@ -114,7 +114,7 @@ async def test_user_login_failed(client: AsyncClient, db_session: AsyncSession):
     response = await client.post(
         "/v1/api/users/login",
         json={
-            "username": "test_user_login",
+            "username": "test_user3",
             "password": "MyCat@",
         },
     )
