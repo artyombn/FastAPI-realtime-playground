@@ -35,5 +35,23 @@ async def get_current_user_from_jwt(
     return UserResponse.model_validate(user)
 
 
+async def require_admin(
+    current_user=Depends(get_current_user_from_jwt),
+):
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication Error: User didn't authenticate",
+        )
+
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This user doesn't have necessary permissions",
+        )
+
+    return current_user
+
+
 def context_dependency(current_user: str = Depends(get_current_user_from_jwt)) -> dict:
     return {"current_user": current_user}

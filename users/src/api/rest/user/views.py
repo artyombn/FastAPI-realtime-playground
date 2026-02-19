@@ -7,8 +7,8 @@ from starlette import status
 
 from src.database.db_helper import db_helper
 from src.core.user.services import UserService
-from src.api.rest.user.decorators import handle_user_errors, handle_check_is_admin
-from src.dependencies import get_current_user_from_jwt
+from src.api.rest.user.decorators import handle_user_errors
+from src.dependencies import get_current_user_from_jwt, require_admin
 
 from src.core.permissions import Permissions
 from src.core.user.entities import (
@@ -35,10 +35,9 @@ user_router = APIRouter(
     summary="Get list of users",
     description="Returns a list of all users with the total number of them.",
 )
-@handle_check_is_admin([])
 async def get_users(
     session: AsyncSession = Depends(db_helper.get_session),
-    current_user=Depends(get_current_user_from_jwt),
+    current_user=Depends(require_admin),
 ) -> UserListResponse:
     users = await UserService.get_all(session)
     result = UserListResponse(
@@ -177,10 +176,11 @@ async def refresh_user(
     summary="Get a user",
     description="Returns a user with the given ID.",
 )
-@handle_check_is_admin([])
 @handle_user_errors
 async def get_user_by_user_id(
-    user_id: int, session: AsyncSession = Depends(db_helper.get_session)
+    user_id: int,
+    current_user=Depends(require_admin),
+    session: AsyncSession = Depends(db_helper.get_session),
 ) -> UserResponse:
     user = await UserService.get_by_id(user_id, session)
     return user
