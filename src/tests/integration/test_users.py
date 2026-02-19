@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.permissions import Permissions
 from src.database.models.user import UserORM
 
 log = logging.getLogger(__name__)
@@ -121,3 +122,54 @@ async def test_user_login_failed(client: AsyncClient, db_session: AsyncSession):
 
     assert response.status_code == HTTPStatus.UNAUTHORIZED
     assert response.json() == {"detail": "Incorrect username or password"}
+
+
+@pytest.mark.asyncio
+async def test_get_users_and_products(client: AsyncClient, db_session: AsyncSession):
+    password = "MyCat@Barsik7"
+
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
+
+    db_session.add(
+        UserORM(
+            username="test_user4",
+            email="test_user4@gmail.com",
+            password=hashed_password,
+            is_admin=True,
+            permissions=[
+                Permissions.VIEW_PRODUCT,
+                Permissions.ADD_PRODUCT,
+                Permissions.UPDATE_PRODUCT,
+                Permissions.DELETE_PRODUCT,
+            ],
+        )
+    )
+    await db_session.commit()
+
+    login_response = await client.post(
+        "/v1/api/users/login",
+        json={
+            "username": "test_user4",
+            "password": "MyCat@Barsik7",
+        },
+    )
+
+    access_token = login_response.json()["access_token"]
+    log.debug(f"ACCESS_TOKEN = {access_token}")
+
+    response_get_users = await client.get(
+        "/v1/api/users/",
+        headers={"Authorization": access_token},
+    )
+    log.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
+
+    response_get_products = await client.get(
+        "/v1/api/products/",
+        headers={"Authorization": access_token},
+    )
+    log.debug(f"RESPONSE_GET_PRODUCTS = {response_get_products.json()}")
+
+    assert response_get_users.status_code == HTTPStatus.OK
+    assert response_get_products.status_code == HTTPStatus.OK
