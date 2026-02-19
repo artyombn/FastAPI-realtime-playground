@@ -35,20 +35,6 @@ async def get_product_list(
     return products_list_output
 
 
-@product_router.get(
-    "/{product_id}",
-    summary="Get product by ID",
-    description="Returns detailed information about a product by its unique identifier.",
-)
-@handle_check_permissions([Permissions.VIEW_PRODUCT])
-@handle_product_errors
-async def get_product_by_product_id(
-    product_id: int, current_user=Depends(get_current_user_from_jwt)
-) -> ProductResponse:
-    product_output = product_service.get(product_id)
-    return product_output
-
-
 @product_router.post(
     "/create",
     response_model=CreateProductResponse,
@@ -65,6 +51,20 @@ async def create_product(
     return CreateProductResponse(
         created_product=created_product, user_who_created=current_user
     )
+
+
+@product_router.get(
+    "/{product_id}",
+    summary="Get product by ID",
+    description="Returns detailed information about a product by its unique identifier.",
+)
+@handle_check_permissions([Permissions.VIEW_PRODUCT])
+@handle_product_errors
+async def get_product_by_product_id(
+    product_id: int, current_user=Depends(get_current_user_from_jwt)
+) -> ProductResponse:
+    product_output = product_service.get(product_id)
+    return product_output
 
 
 @product_router.patch(
