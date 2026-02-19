@@ -49,18 +49,18 @@ async def get_users(
 
 
 @user_router.get(
-    "/{user_id}",
+    "/me",
     response_model=UserResponse,
-    summary="Get a user",
-    description="Returns a user with the given ID.",
+    summary="Get my info",
+    description="Get info about myself with hashed password",
 )
-@handle_check_is_admin([])
-@handle_user_errors
-async def get_user_by_user_id(
-    user_id: int, session: AsyncSession = Depends(db_helper.get_session)
-) -> UserResponse:
-    user = await UserService.get_by_id(user_id, session)
-    return user
+async def me(current_user=Depends(get_current_user_from_jwt)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication Error: You didn't authenticate",
+        )
+    return current_user
 
 
 @user_router.post(
@@ -171,16 +171,16 @@ async def refresh_user(
     return f"Access Token was refreshed: {access_token}"
 
 
-@user_router.put(
-    "/me",
-    response_model=Optional[UserResponse],
-    summary="Get my info",
-    description="Get info about myself with hashed password",
+@user_router.get(
+    "/{user_id}",
+    response_model=UserResponse,
+    summary="Get a user",
+    description="Returns a user with the given ID.",
 )
-async def me(current_user=Depends(get_current_user_from_jwt)):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication Error: You didn't authenticate",
-        )
-    return current_user
+@handle_check_is_admin([])
+@handle_user_errors
+async def get_user_by_user_id(
+    user_id: int, session: AsyncSession = Depends(db_helper.get_session)
+) -> UserResponse:
+    user = await UserService.get_by_id(user_id, session)
+    return user
