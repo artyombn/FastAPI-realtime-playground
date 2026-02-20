@@ -36,14 +36,19 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.appython --versioni"
 
 [tool.pytest.ini_options]
+python_files = "test_*.py *_test.py"
+testpaths = ["src/tests"]
+
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-python_files = "test_*.py *_test.py"
-testpaths = ["src/tests"]
+
 log_cli = false
+addopts = "-v --maxfail=5"
+#addopts = "-s -vv --tb=long --maxfail=5"
+
 log_cli_level = "DEBUG"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-addopts = "-s"
+
 
