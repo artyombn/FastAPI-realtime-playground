@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.user.entities import CreateUser as CreateUserSchema
+from src.core.entities import CreateUser as CreateUserSchema
 from src.database.repositories.user import UserRepository
 from src.database.models.user import UserORM
 

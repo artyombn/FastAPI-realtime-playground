@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.user.exceptions import UserAlreadyExistsError
+from src.core.exceptions import UserAlreadyExistsError
 
 
 class UnitOfWork:

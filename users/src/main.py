@@ -12,8 +12,7 @@ from src.config.paths import MEDIA_USERS_DIR
 
 from src.dependencies import context_dependency
 from src.api.graphql.resolvers import Query, Mutation
-from src.api.rest.product.views import product_router
-from src.api.rest.user.views import user_router
+from src.api.rest.views import user_router
 
 setup_logging()
 
@@ -31,7 +30,6 @@ app = FastAPI(lifespan=lifespan)
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 # API routers
 api_v1_router = APIRouter(prefix="/v1/api")
-api_v1_router.include_router(product_router)
 api_v1_router.include_router(user_router)
 
 # GraphQL routers

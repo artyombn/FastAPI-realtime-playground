@@ -1,6 +1,5 @@
 from functools import wraps
 
-from src.api.graphql.product.schemas import ProductPage
 from src.api.graphql.user.schemas import UserPage
 
 
@@ -29,13 +28,6 @@ def paginate(entity: str):
 
             if entity == "user":
                 return UserPage(
-                    items=paginated_items,
-                    total_items=total_items,
-                    offset=offset,
-                    limit=limit,
-                )
-            elif entity == "product":
-                return ProductPage(
                     items=paginated_items,
                     total_items=total_items,
                     offset=offset,

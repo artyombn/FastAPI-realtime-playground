@@ -6,18 +6,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from src.database.db_helper import db_helper
-from src.core.user.services import UserService
-from src.api.rest.user.decorators import handle_user_errors
+from src.core.services import UserService
+from src.api.rest.decorators import handle_user_errors
 from src.dependencies import get_current_user_from_jwt, require_admin
 
 from src.core.permissions import Permissions
-from src.core.user.entities import (
+from src.core.entities import (
     UserListResponse,
     UserResponse,
     CreateUser,
     UserLogin,
 )
-from src.core.user.services import (
+from src.core.services import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,

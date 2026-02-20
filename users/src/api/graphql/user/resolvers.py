@@ -9,7 +9,7 @@ from strawberry.file_uploads import Upload
 from src.config.paths import MEDIA_USERS_DIR
 from src.api.graphql.decorators import paginate
 from src.api.graphql.decorators import require_authentication
-from src.core.user.exceptions import (
+from src.core.exceptions import (
     UserNotFoundError,
     UserCreationError,
     TokenCreationError,
@@ -17,8 +17,8 @@ from src.core.user.exceptions import (
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from src.core.user.entities import CreateUser
-from src.core.user.services import (
+from src.core.entities import CreateUser
+from src.core.services import (
     UserService,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     REFRESH_TOKEN_EXPIRE_MINUTES,

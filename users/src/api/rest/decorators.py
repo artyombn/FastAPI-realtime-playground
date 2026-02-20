@@ -3,7 +3,7 @@ from functools import wraps
 from fastapi import Depends, HTTPException
 from starlette import status
 
-from src.core.user.exceptions import (
+from src.core.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
     UserCreationError,

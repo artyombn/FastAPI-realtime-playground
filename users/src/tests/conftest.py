@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from src.core.user.exceptions import UserAlreadyExistsError
+from src.core.exceptions import UserAlreadyExistsError
 from src.database.uow import UnitOfWork
 from src.main import app as main_app
 from src.database.base import Base
@@ -104,7 +104,7 @@ def patch_uow(monkeypatch):
     Оригинальный UOW закрывает сессию после выхода из контекста, что приводит к ошибкам при повторных операциях в тестах.
     """
 
-    from src.core.user import services
+    from src.core import services
 
     monkeypatch.setattr(services, "unit_of_work", _test_unit_of_work)
 
@@ -135,6 +135,6 @@ async def client(session_override) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=main_app)
     async with AsyncClient(
         transport=transport,
-        base_url="http://test",
+        base_url="http://test_users_app:7000/",
     ) as ac:
         yield ac

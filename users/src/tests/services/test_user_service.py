@@ -5,9 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models.user import UserORM
-from src.core.user.services import UserService
+from src.core.services import UserService
 from src.core.permissions import Permissions
-from src.core.user.entities import CreateUser
+from src.core.entities import CreateUser
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)

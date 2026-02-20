@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.uow import unit_of_work
 
 from src.database.repositories.user import UserRepository
-from src.core.user.exceptions import (
+from src.core.exceptions import (
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
@@ -19,7 +19,7 @@ from src.core.user.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
 )
-from src.core.user.entities import (
+from src.core.entities import (
     UserResponse,
     UserResponseWithHashedPWD,
     CreateUser,

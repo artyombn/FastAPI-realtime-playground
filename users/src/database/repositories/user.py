@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, Sequence
 
-from src.core.user.entities import CreateUser as CreateUserSchema
+from src.core.entities import CreateUser as CreateUserSchema
 from src.database.models.user import UserORM
 
 

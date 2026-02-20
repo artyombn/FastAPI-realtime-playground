@@ -3,13 +3,13 @@ from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db_helper import db_helper
-from src.core.user.exceptions import (
+from src.core.exceptions import (
     TokenExpiredError,
     TokenIsNotValidError,
     TokenTypeIsNotValidError,
 )
-from src.core.user.entities import UserResponse
-from src.core.user.services import UserService
+from src.core.entities import UserResponse
+from src.core.services import UserService
 
 
 async def get_current_user_from_jwt(
