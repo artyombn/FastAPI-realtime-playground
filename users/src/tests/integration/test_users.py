@@ -125,7 +125,7 @@ async def test_user_login_failed(client: AsyncClient, db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_get_users_and_products(client: AsyncClient, db_session: AsyncSession):
+async def test_get_users(client: AsyncClient, db_session: AsyncSession):
     password = "MyCat@Barsik7"
 
     hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
@@ -165,14 +165,7 @@ async def test_get_users_and_products(client: AsyncClient, db_session: AsyncSess
     )
     log.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
 
-    response_get_products = await client.get(
-        "/v1/api/products/",
-        headers={"Authorization": access_token},
-    )
-    log.debug(f"RESPONSE_GET_PRODUCTS = {response_get_products.json()}")
-
     assert response_get_users.status_code == HTTPStatus.OK
-    assert response_get_products.status_code == HTTPStatus.OK
 
 
 @pytest.mark.asyncio
@@ -214,13 +207,7 @@ async def test_get_users_permission_denied(
     )
     log.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
 
-    response_get_products = await client.get(
-        "/v1/api/products/",
-        headers={"Authorization": access_token},
-    )
-
     assert response_get_users.status_code == HTTPStatus.FORBIDDEN
-    assert response_get_products.status_code == HTTPStatus.OK
 
 
 @pytest.mark.asyncio
