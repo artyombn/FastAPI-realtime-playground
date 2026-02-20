@@ -1,6 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport

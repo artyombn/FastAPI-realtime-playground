@@ -16,7 +16,8 @@ RUN pip install --upgrade pip poetry \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-interaction --no-ansi
 
-COPY ./src ./src
+COPY alembic.ini ./
+COPY src ./src
 
 CMD ["gunicorn", "src.main:app", \
      "-k", "uvicorn.workers.UvicornWorker", \
