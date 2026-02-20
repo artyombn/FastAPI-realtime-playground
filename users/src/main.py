@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import strawberry
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
@@ -26,6 +27,19 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 # API routers
