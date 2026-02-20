@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 
 import strawberry
+import sentry_sdk
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
+from src.config.logging_configs.sentry import sentry_config
 from src.database.db_helper import db_helper
 from src.config.logger import setup_logging
 from src.config.paths import MEDIA_USERS_DIR
@@ -27,6 +29,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+# sentry_sdk.init(**sentry_config)
 
 origins = [
     "http://localhost",
@@ -60,3 +63,8 @@ app.mount("/media", StaticFiles(directory=MEDIA_USERS_DIR), name="media")
 @app.get("/")
 async def index():
     return {"message": "This is the main Page"}
+
+
+# @app.get("/sentry-debug")
+# async def trigger_error():
+#     division_by_zero = 1 / 0

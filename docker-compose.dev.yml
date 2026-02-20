@@ -1,5 +1,6 @@
 services:
   users_app:
+#    network_mode: "host" # for sentry host
     build:
       context: users
       dockerfile: Dockerfile
