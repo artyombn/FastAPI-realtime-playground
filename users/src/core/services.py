@@ -8,6 +8,7 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config.logging_configs.local import logger
 from src.database.uow import unit_of_work
 
 from src.database.repositories.user import UserRepository
@@ -56,6 +57,9 @@ class UserService:
         if await UserRepository.get_by_username(
             session=session, username=user.username
         ):
+            logger.error(
+                f"Attempt to create existed user. username={user.username}, email={user.email}"
+            )
             raise UserAlreadyExistsError()
 
         hashed_password = bcrypt.hashpw(

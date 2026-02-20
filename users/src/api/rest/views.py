@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
+from src.config.logging_configs.local import logger
 from src.database.db_helper import db_helper
 from src.core.services import UserService
 from src.api.rest.decorators import handle_user_errors
@@ -80,6 +81,9 @@ async def register_user(
     session: AsyncSession = Depends(db_helper.get_session),
 ) -> UserResponse:
     created_user = await UserService.create(user, permissions, session)
+    logger.info(
+        f"User successfully created. id={created_user.id}, username={created_user.username}, email={created_user.email}"
+    )
     return created_user
 
 
@@ -91,16 +95,19 @@ async def register_user(
 )
 @handle_user_errors
 async def login(
-    user: UserLogin, session: AsyncSession = Depends(db_helper.get_session)
+    user_login: UserLogin, session: AsyncSession = Depends(db_helper.get_session)
 ) -> dict:
     user = await UserService.authenticate_user(
-        username=user.username, password=user.password, session=session
+        username=user_login.username, password=user_login.password, session=session
     )
     if user is None:
+        logger.error(f"User authorization error. Username: {user_login.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
         )
+    logger.info(f"User successfully authorized. Username: {user_login.username}")
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
