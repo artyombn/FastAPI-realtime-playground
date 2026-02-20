@@ -42,6 +42,17 @@ services:
     networks:
       - dev_network
 
+  users_nginx:
+    image: nginx:latest
+    container_name: users_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/src:/usr/share/nginx/html
+    networks:
+      - dev_network
+
 volumes:
   pgdata:
   pgadmin:
