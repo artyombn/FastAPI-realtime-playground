@@ -53,5 +53,8 @@ async def require_admin(
     return current_user
 
 
-def context_dependency(current_user: str = Depends(get_current_user_from_jwt)) -> dict:
-    return {"current_user": current_user}
+def context_dependency(
+    current_user: str = Depends(get_current_user_from_jwt),
+    session: AsyncSession = Depends(db_helper.get_session),
+) -> dict:
+    return {"current_user": current_user, "session": session}

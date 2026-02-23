@@ -8,6 +8,11 @@ class UserNotFoundError(Exception):
         super().__init__(message)
 
 
+class UserLoginError(Exception):
+    def __init__(self, message: str = "Incorrect username or password"):
+        super().__init__(message)
+
+
 class UserCreationError(Exception):
     def __init__(self, message: str = "User creation failed"):
         super().__init__(message)

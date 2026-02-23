@@ -7,6 +7,7 @@ from src.core.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
     UserCreationError,
+    UserLoginError,
     TokenIsNotValidError,
     TokenExpiredError,
     TokenTypeIsNotValidError,
@@ -27,7 +28,12 @@ def handle_user_errors(func):
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
         except (UserCreationError, ServiceError) as e:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-        except (TokenIsNotValidError, TokenExpiredError, TokenTypeIsNotValidError) as e:
+        except (
+            UserLoginError,
+            TokenIsNotValidError,
+            TokenExpiredError,
+            TokenTypeIsNotValidError,
+        ) as e:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
         except TokenCreationError as e:
             raise HTTPException(
