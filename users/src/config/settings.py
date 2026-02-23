@@ -3,6 +3,7 @@ import os
 from functools import lru_cache
 
 from dotenv import dotenv_values
+from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.config.paths import BASE_DIR
@@ -13,6 +14,7 @@ log.setLevel(logging.DEBUG)
 
 class Settings(BaseSettings):
     DOCKER: bool = False
+    IS_TESTING: bool
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST_LOCAL: str
@@ -62,6 +64,7 @@ class Settings(BaseSettings):
 
 class TestSettings(BaseSettings):
     DOCKER: bool = False
+    IS_TESTING: bool
     DB_USER: str
     DB_PASSWORD: str
     DB_HOST_LOCAL: str
@@ -87,11 +90,17 @@ class TestSettings(BaseSettings):
 
 
 @lru_cache
-def get_settings() -> Settings:
-    return Settings()
+def get_settings() -> Settings | None:
+    try:
+        return Settings()
+    except ValidationError:
+        return None
 
 
 @lru_cache
-def get_test_settings() -> TestSettings:
-    env_vars = dotenv_values(os.path.join(BASE_DIR, ".env.test"))
-    return TestSettings(**env_vars)
+def get_test_settings() -> TestSettings | None:
+    try:
+        env_vars = dotenv_values(os.path.join(BASE_DIR, ".env.test"))
+        return TestSettings(**env_vars)
+    except ValidationError:
+        return None
