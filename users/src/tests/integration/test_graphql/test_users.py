@@ -1,3 +1,5 @@
+import logging
+
 import bcrypt
 import pytest
 from httpx import AsyncClient
@@ -5,6 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models.user import UserORM
 from src.api.graphql.user.schemas import UserInput
+
+logger = logging.getLogger("fastapi-app")
 
 
 @pytest.mark.asyncio
@@ -86,3 +90,23 @@ async def test_login_success(client: AsyncClient, db_session: AsyncSession):
     assert "data" in data
     assert "accessToken" in data["data"]["login"]
     assert "refreshToken" in data["data"]["login"]
+
+
+@pytest.mark.asyncio
+async def test_login_fail(client: AsyncClient):
+    query = """
+    mutation {
+        login(username: "graphql_user1", password: "MyCat@Barsik777") {
+            accessToken
+            refreshToken
+        }
+    }
+    """
+    response = await client.post("/v1/graphql", json={"query": query})
+
+    data = response.json()
+    logger.debug(f"DATA = {data}")
+    assert response.status_code == 200
+
+    assert "errors" in data
+    assert "Incorrect username or password" in data["errors"][0]["message"]
