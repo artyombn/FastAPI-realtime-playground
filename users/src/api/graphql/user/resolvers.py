@@ -31,8 +31,10 @@ from src.api.graphql.user.schemas import UserSchema, UserInput, TokenSchema, Use
 class UserQuery:
 
     @strawberry.field(description="Get User")
-    def user(self, id: int) -> UserSchema:
-        user = UserService.get_by_id(id)
+    async def user(self, id: int, info: strawberry.Info) -> UserSchema:
+        session = info.context["session"]
+
+        user = await UserService.get_by_id(id, session)
         if not user:
             raise UserNotFoundError()
         return UserSchema(
@@ -46,7 +48,11 @@ class UserQuery:
     @strawberry.field(description="Get all Users")
     @require_authentication
     @paginate(entity="user")
-    def all_users(self, info, limit: int, offset: int) -> UserPage:
+    async def all_users(
+        self, info: strawberry.Info, limit: int, offset: int
+    ) -> list[UserPage]:
+        session = info.context["session"]
+
         users = [
             UserSchema(
                 id=user[0],
@@ -55,7 +61,7 @@ class UserQuery:
                 is_admin=user[1].is_admin,
                 permissions=user[1].permissions,
             )
-            for user in UserService.get_all()
+            for user in await UserService.get_all(session)
         ]
         return users
 
@@ -96,8 +102,11 @@ class FileMutation:
 class UserMutation:
 
     @strawberry.mutation(description="Create new user")
-    def register(
-        self, user: UserInput, permissions: Optional[list[str]] = None
+    async def register(
+        self,
+        user: UserInput,
+        info: strawberry.Info,
+        permissions: Optional[list[str]] = None,
     ) -> UserSchema:
         if permissions is None:
             permissions = []
@@ -113,7 +122,9 @@ class UserMutation:
         except ValidationError as e:
             raise GraphQLError(str(e))
 
-        created_user = UserService.add(data, permissions)
+        session = info.context["session"]
+
+        created_user = await UserService.create(data, permissions, session)
         return UserSchema(
             id=created_user.id,
             username=created_user.username,
@@ -123,8 +134,12 @@ class UserMutation:
         )
 
     @strawberry.mutation(description="User Login")
-    def login(self, username: str, password: str) -> TokenSchema:
-        user = UserService.authenticate_user(username, password)
+    async def login(
+        self, username: str, password: str, info: strawberry.Info
+    ) -> TokenSchema:
+        session = info.context["session"]
+
+        user = await UserService.authenticate_user(username, password, session)
         if user is None:
             raise UserCreationError("Incorrect username or password")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -161,7 +176,7 @@ class UserMutation:
         return TokenSchema(access_token=access_token, refresh_token=refresh_token)
 
     @strawberry.mutation(description="Refresh Token")
-    def refresh_token(token: str) -> TokenSchema:
+    async def refresh_token(token: str, info: strawberry.Info) -> TokenSchema:
         try:
             username = UserService.verify_token(token, "refresh_token")
         except TokenExpiredError as e:
@@ -171,12 +186,10 @@ class UserMutation:
         except TokenTypeIsNotValidError as e:
             raise GraphQLError(str(e))
 
-        user_tuple = UserService.get_by_username(username)
-        if not user_tuple:
+        session = info.context["session"]
+        user = await UserService.get_by_username(username, session)
+        if not user:
             raise GraphQLError("Wrong username or password during token refresh")
-
-        user_id = user_tuple[0]
-        user = user_tuple[1]
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -184,7 +197,7 @@ class UserMutation:
             sub=user.username,
             is_admin=user.is_admin,
             extra={
-                "user_id": user_id,
+                "user_id": user.id,
                 "type": "access_token",
                 "access_token_expires": int(access_token_expires.total_seconds()),
             },
