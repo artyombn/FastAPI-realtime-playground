@@ -1,23 +1,21 @@
 from contextlib import asynccontextmanager
 
 import strawberry
-import sentry_sdk
 
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 from strawberry.fastapi import GraphQLRouter
 
-from src.config.logging_configs.sentry import sentry_config
+from src.config.logging_configs.local import setup_logging
 from src.database.db_helper import db_helper
-from src.config.logger import setup_logging
 from src.config.paths import MEDIA_USERS_DIR
 
 from src.dependencies import context_dependency
 from src.api.graphql.resolvers import Query, Mutation
 from src.api.rest.views import user_router
 
-setup_logging()
+logger = setup_logging()
 
 
 @asynccontextmanager

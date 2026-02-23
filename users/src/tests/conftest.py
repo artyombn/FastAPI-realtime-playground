@@ -18,8 +18,7 @@ from src.main import app as main_app
 from src.database.base import Base
 from src.database.db_helper import db_helper
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger("fastapi-app")
 
 
 @pytest.fixture(scope="session")
@@ -32,7 +31,7 @@ def test_database_url() -> str:
     from src.config.settings import get_test_settings
 
     settings = get_test_settings()
-    log.debug(f"DB_TEST_URL = {settings.test_get_db_url()}")
+    logger.debug(f"DB_TEST_URL = {settings.test_get_db_url()}")
     return settings.test_get_db_url()
 
 

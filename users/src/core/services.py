@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 import os
@@ -8,7 +9,6 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.logging_configs.local import logger
 from src.database.uow import unit_of_work
 
 from src.database.repositories.user import UserRepository
@@ -27,6 +27,8 @@ from src.core.entities import (
     AdminUser,
     RegularUser,
 )
+
+logger = logging.getLogger("fastapi-app")
 
 load_dotenv()
 

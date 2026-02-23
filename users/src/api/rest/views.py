@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from typing import Optional
 
@@ -5,7 +6,6 @@ from fastapi import APIRouter, Query, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from src.config.logging_configs.local import logger
 from src.database.db_helper import db_helper
 from src.core.services import UserService
 from src.api.rest.decorators import handle_user_errors
@@ -23,6 +23,8 @@ from src.core.services import (
     REFRESH_TOKEN_EXPIRE_MINUTES,
     TokenData,
 )
+
+logger = logging.getLogger("fastapi-app")
 
 user_router = APIRouter(
     prefix="/users",
