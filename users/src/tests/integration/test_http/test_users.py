@@ -10,8 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.permissions import Permissions
 from src.database.models.user import UserORM
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+logger = logging.getLogger("fastapi-app")
 
 
 @pytest.mark.asyncio
@@ -97,7 +96,7 @@ async def test_user_login(client: AsyncClient, db_session: AsyncSession):
     result = await db_session.execute(stmt)
     found = result.scalar_one_or_none()
 
-    log.debug(f"USER_FOUND = {found.__dict__}")
+    logger.debug(f"USER_FOUND = {found.__dict__}")
 
     response = await client.post(
         "/v1/api/users/login",
@@ -157,13 +156,13 @@ async def test_get_users(client: AsyncClient, db_session: AsyncSession):
     )
 
     access_token = login_response.json()["access_token"]
-    log.debug(f"ACCESS_TOKEN = {access_token}")
+    logger.debug(f"ACCESS_TOKEN = {access_token}")
 
     response_get_users = await client.get(
         "/v1/api/users/",
         headers={"Authorization": access_token},
     )
-    log.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
+    logger.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
 
     assert response_get_users.status_code == HTTPStatus.OK
 
@@ -205,7 +204,7 @@ async def test_get_users_permission_denied(
         "/v1/api/users/",
         headers={"Authorization": access_token},
     )
-    log.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
+    logger.debug(f"RESPONSE_GET_USERS = {response_get_users.json()}")
 
     assert response_get_users.status_code == HTTPStatus.FORBIDDEN
 

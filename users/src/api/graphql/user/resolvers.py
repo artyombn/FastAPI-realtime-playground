@@ -11,7 +11,7 @@ from src.api.graphql.decorators import paginate
 from src.api.graphql.decorators import require_authentication
 from src.core.exceptions import (
     UserNotFoundError,
-    UserCreationError,
+    UserLoginError,
     TokenCreationError,
     TokenExpiredError,
     TokenIsNotValidError,
@@ -141,7 +141,7 @@ class UserMutation:
 
         user = await UserService.authenticate_user(username, password, session)
         if user is None:
-            raise UserCreationError("Incorrect username or password")
+            raise UserLoginError("Incorrect username or password")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         refresh_token_expires = timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
