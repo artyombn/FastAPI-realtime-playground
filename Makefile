@@ -12,7 +12,7 @@ test-users-postgres:
 	docker compose -f docker-compose.test.yml up test_users_db
 
 test-users-local:
-	#cd users && pytest -vv --maxfail=5
+	#cd users && pytest -s -vv --tb=long --maxfail=5
 	cd users && pytest --maxfail=5
 
 check-ip:
