@@ -12,13 +12,9 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
 )
 
-from src.core.exceptions import UserAlreadyExistsError
-from src.database.uow import UnitOfWork
-from src.main import app as main_app
-from src.database.base import Base
-from src.database.db_helper import db_helper
 from users.core.exceptions import UserAlreadyExistsError
 from users.database.uow import UnitOfWork
+from users.dependencies import get_session
 from users.main import app as main_app
 from users.database.base import Base
 
@@ -123,7 +119,7 @@ def session_override(db_session: AsyncSession):
     async def get_session_override() -> AsyncGenerator[AsyncSession, None]:
         yield db_session
 
-    main_app.dependency_overrides[db_helper.get_session] = get_session_override
+    main_app.dependency_overrides[get_session] = get_session_override
     yield
     main_app.dependency_overrides.clear()
 

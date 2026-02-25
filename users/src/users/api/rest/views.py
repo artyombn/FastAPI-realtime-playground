@@ -38,7 +38,7 @@ user_router = APIRouter(
     description="Returns a list of all users with the total number of them.",
 )
 async def get_users(
-    session: AsyncSession = Depends(db_helper.get_session),
+    session: AsyncSession = Depends(get_session),
     current_user=Depends(require_admin),
 ) -> UserListResponse:
     users = await UserService.get_all(session)
@@ -79,7 +79,7 @@ async def register_user(
         example=Permissions.list(),
         enum=Permissions.list(),
     ),
-    session: AsyncSession = Depends(db_helper.get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     created_user = await UserService.create(user, permissions, session)
     logger.info(
@@ -96,7 +96,7 @@ async def register_user(
 )
 @handle_user_errors
 async def login(
-    user_login: UserLogin, session: AsyncSession = Depends(db_helper.get_session)
+    user_login: UserLogin, session: AsyncSession = Depends(get_session)
 ) -> dict:
     user = await UserService.authenticate_user(
         username=user_login.username, password=user_login.password, session=session
@@ -147,9 +147,7 @@ async def login(
     description="Refresh user using access token and refresh token",
 )
 @handle_user_errors
-async def refresh_user(
-    token: str, session: AsyncSession = Depends(db_helper.get_session)
-) -> str:
+async def refresh_user(token: str, session: AsyncSession = Depends(get_session)) -> str:
     username = UserService.verify_token(token, "refresh_token")
 
     user = await UserService.get_by_username(username, session)
@@ -188,7 +186,7 @@ async def refresh_user(
 async def get_user_by_user_id(
     user_id: int,
     current_user=Depends(require_admin),
-    session: AsyncSession = Depends(db_helper.get_session),
+    session: AsyncSession = Depends(get_session),
 ) -> UserResponse:
     user = await UserService.get_by_id(user_id, session)
     return user

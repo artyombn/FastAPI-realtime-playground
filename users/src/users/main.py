@@ -11,9 +11,7 @@ from users.config.logging_configs.local import setup_logging
 from users.config.paths import MEDIA_USERS_DIR
 from users.config.settings import get_settings
 
-from src.dependencies import context_dependency
-from src.api.graphql.resolvers import Query, Mutation
-from src.api.rest.views import user_router
+from users.database.db_helper import DatabaseHelper
 from users.dependencies import context_dependency
 from users.api.graphql.resolvers import Query, Mutation
 from users.api.rest.views import user_router
@@ -23,11 +21,11 @@ logger = setup_logging()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     settings = get_settings()
+    app.state.db_helper = DatabaseHelper(db_url=settings.get_db_url())
     yield
 
-    await db_helper.dispose()
+    await app.state.db_helper.dispose()
 
 
 app = FastAPI(lifespan=lifespan)
