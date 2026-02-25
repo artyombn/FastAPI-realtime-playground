@@ -37,6 +37,9 @@ services:
 #  products_redis:
 #    image: redis:latest
 #    container_name: products_redis_container
+  products_redis:
+    image: redis:latest
+    container_name: products_redis_container
 
   users_postgres:
     image: postgres:latest
