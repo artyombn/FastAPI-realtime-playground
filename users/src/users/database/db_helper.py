@@ -29,7 +29,3 @@ class DatabaseHelper:
     async def dispose(self) -> None:
         """Утилизация Engine при завершении работы приложения."""
         await self.engine.dispose()
-
-
-settings = get_settings()
-db_helper = DatabaseHelper(db_url=settings.get_db_url(), echo=False)

@@ -89,17 +89,11 @@ class TestSettings(BaseSettings):
 
 
 @lru_cache
-def get_settings() -> Settings | None:
-    try:
-        return Settings()
-    except ValidationError:
-        return None
+def get_settings() -> Settings:
+    return Settings()
 
 
 @lru_cache
-def get_test_settings() -> TestSettings | None:
-    try:
-        env_vars = dotenv_values(os.path.join(BASE_DIR, ".env.test"))
-        return TestSettings(**env_vars)
-    except ValidationError:
-        return None
+def get_test_settings() -> TestSettings:
+    env_vars = dotenv_values(os.path.join(PROJECT_DIR, ".env.test"))
+    return TestSettings(**env_vars)

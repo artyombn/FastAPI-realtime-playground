@@ -24,6 +24,7 @@ logger = setup_logging()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
+    settings = get_settings()
     yield
 
     await db_helper.dispose()
