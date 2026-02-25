@@ -1,10 +1,13 @@
 [tool.poetry]
-name = "fastapi-realtime-playground"
+name = "users"
 version = "0.1.0"
 description = ""
 authors = ["artyombn <balabashinan@gmail.com>"]
 readme = "README.md"
-package-mode = false
+
+packages = [
+    { include = "users", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -34,7 +37,7 @@ pytest = "^9.0.2"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.appython --versioni"
+build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 python_files = "test_*.py *_test.py"

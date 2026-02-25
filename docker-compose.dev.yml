@@ -5,7 +5,7 @@ services:
       context: users
       dockerfile: Dockerfile
     container_name: users_app
-    command: sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --reload"
+    command: sh -c "alembic upgrade head && uvicorn users.main:app --host 0.0.0.0 --reload"
     depends_on:
       - users_postgres
     volumes:
@@ -16,6 +16,27 @@ services:
       - .env
     networks:
       - dev_network
+
+#  products_app:
+#    build:
+#      context: products
+#      dockerfile: Dockerfile
+#    container_name: products_app
+#    command: sh -c "uvicorn src.main:app --host 0.0.0.0 --port 7000 --reload"
+#    depends_on:
+#      - products_redis
+#    volumes:
+#      - ./products:/app
+#    ports:
+#      - "8001:7000"
+#    env_file:
+#      - .env
+#    networks:
+#      - dev_network
+#
+#  products_redis:
+#    image: redis:latest
+#    container_name: products_redis_container
 
   users_postgres:
     image: postgres:latest
