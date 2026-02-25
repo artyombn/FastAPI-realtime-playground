@@ -1,0 +1,233 @@
+2026-02-23 17:37:55,408 - asyncio - DEBUG - Using selector: EpollSelector
+2026-02-23 17:37:55,408 - asyncio - DEBUG - Using selector: EpollSelector
+2026-02-23 17:37:55,451 - strawberry.execution - ERROR - Unknown argument 'username' on field 'Mutation.register'. Did you mean 'user'?
+
+GraphQL request:3:18
+2 |     mutation {
+3 |         register(username: "olga", email: "olga@gmail.com", password: "MyCat@Barsik7") {
+  |                  ^
+4 |             username
+2026-02-23 17:37:55,451 - strawberry.execution - ERROR - Unknown argument 'email' on field 'Mutation.register'.
+
+GraphQL request:3:36
+2 |     mutation {
+3 |         register(username: "olga", email: "olga@gmail.com", password: "MyCat@Barsik7") {
+  |                                    ^
+4 |             username
+2026-02-23 17:37:55,451 - strawberry.execution - ERROR - Unknown argument 'password' on field 'Mutation.register'.
+
+GraphQL request:3:61
+2 |     mutation {
+3 |         register(username: "olga", email: "olga@gmail.com", password: "MyCat@Barsik7") {
+  |                                                             ^
+4 |             username
+2026-02-23 17:37:55,451 - strawberry.execution - ERROR - Field 'register' argument 'user' of type 'UserInput!' is required, but it was not provided.
+
+GraphQL request:3:9
+2 |     mutation {
+3 |         register(username: "olga", email: "olga@gmail.com", password: "MyCat@Barsik7") {
+  |         ^
+4 |             username
+2026-02-23 17:37:55,452 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/graphql "HTTP/1.1 200 OK"
+2026-02-23 17:37:55,682 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 17:37:55,683 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/register "HTTP/1.1 200 OK"
+2026-02-23 17:37:55,691 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 17:37:55,692 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/register "HTTP/1.1 409 Conflict"
+2026-02-23 17:37:55,875 - src.tests.integration.test_http.test_users - DEBUG - USER_FOUND = {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x7adba24adbb0>, 'username': 'test_user3', 'is_admin': False, 'email': 'test_user3@gmail.com', 'permissions': [], 'created_at': datetime.datetime(2026, 2, 23, 14, 37, 55, 872958, tzinfo=datetime.timezone.utc), 'password': '$2b$12$MY24oQ83K6bOkKRfvLtHu.ctKd2pNC41ni9WIYlx.DoLE8BY34ksi', 'id': 3, 'updated_at': datetime.datetime(2026, 2, 23, 14, 37, 55, 872958, tzinfo=datetime.timezone.utc)}
+2026-02-23 17:37:56,051 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 17:37:56,055 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/login "HTTP/1.1 200 OK"
+2026-02-23 17:37:56,235 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 17:37:56,235 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/login "HTTP/1.1 401 Unauthorized"
+2026-02-23 17:37:56,593 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 17:37:56,594 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/login "HTTP/1.1 200 OK"
+2026-02-23 17:37:56,594 - src.tests.integration.test_http.test_users - DEBUG - ACCESS_TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXI0IiwiaXNfYWRtaW4iOnRydWUsImV4dHJhIjp7InVzZXJfaWQiOjQsInR5cGUiOiJhY2Nlc3NfdG9rZW4iLCJhY2Nlc3NfdG9rZW5fZXhwaXJlcyI6NjB9LCJleHAiOjE3NzE4NTc1MzZ9.N7b9A_mORAm87o_PHMGtDXLMokkgwefonsXjGttvL00
+2026-02-23 17:37:56,597 - httpx - INFO - HTTP Request: GET http://test_users_app:7000/v1/api/users/ "HTTP/1.1 200 OK"
+2026-02-23 17:37:56,598 - src.tests.integration.test_http.test_users - DEBUG - RESPONSE_GET_USERS = {'total_users': 4, 'users': [{'username': 'test_user1', 'email': 'test_user1@gmail.com', 'is_admin': False, 'permissions': [], 'id': 1}, {'username': 'test_user2', 'email': 'test_user2@gmail.com', 'is_admin': False, 'permissions': [], 'id': 2}, {'username': 'test_user3', 'email': 'test_user3@gmail.com', 'is_admin': False, 'permissions': [], 'id': 3}, {'username': 'test_user4', 'email': 'test_user4@gmail.com', 'is_admin': True, 'permissions': ['view_product', 'add_product', 'update_product', 'delete_product'], 'id': 4}]}
+2026-02-23 17:37:56,956 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 17:37:56,956 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/login "HTTP/1.1 200 OK"
+2026-02-23 17:37:56,958 - httpx - INFO - HTTP Request: GET http://test_users_app:7000/v1/api/users/ "HTTP/1.1 403 Forbidden"
+2026-02-23 17:37:56,958 - src.tests.integration.test_http.test_users - DEBUG - RESPONSE_GET_USERS = {'detail': "This user doesn't have necessary permissions"}
+2026-02-23 17:37:57,316 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 17:37:57,316 - httpx - INFO - HTTP Request: POST http://test_users_app:7000/v1/api/users/login "HTTP/1.1 200 OK"
+2026-02-23 17:37:57,318 - httpx - INFO - HTTP Request: GET http://test_users_app:7000/v1/api/users/me "HTTP/1.1 200 OK"
+2026-02-23 17:37:57,321 - httpx - INFO - HTTP Request: GET http://test_users_app:7000/v1/api/users/me "HTTP/1.1 401 Unauthorized"
+2026-02-23 17:37:57,322 - src.tests.repositories.test_user_repository - DEBUG - USER_REPOSITORY = username='test_user_repository' email='test_user_repository@gmail.com' is_admin=False permissions=[] password='MyCat@Barsik7'
+2026-02-23 17:37:57,324 - src.tests.repositories.test_user_repository - DEBUG - RES_REPOSITORY = <src.database.models.user.UserORM object at 0x7adba24a7070>
+2026-02-23 17:37:57,326 - src.tests.services.test_user_service - DEBUG - USER_SERVICE = username='test_user_service' email='test_user_service@gmail.com' is_admin=False permissions=[] password='MyCat@Barsik7'
+2026-02-23 17:37:57,507 - src.tests.services.test_user_service - DEBUG - CREATED_USER = username='test_user_service' email='test_user_service@gmail.com' is_admin=False permissions=['view_product', 'delete_product'] id=8
+2026-02-23 17:37:57,508 - src.tests.services.test_user_service - DEBUG - FOUND_SERVICE = <src.database.models.user.UserORM object at 0x7adba2305630>
+2026-02-23 17:48:54,994 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 17:48:55,004 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 17:48:55,364 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 17:48:55,546 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 17:48:55,903 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 17:48:56,267 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 17:48:56,632 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:33:08,757 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:33:08,768 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:33:09,131 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:33:09,323 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:33:09,687 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:33:10,065 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:33:10,435 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:35:00,791 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:35:00,800 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:35:01,159 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:35:01,344 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:35:01,704 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:35:02,073 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:35:02,445 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:37:56,999 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:37:57,008 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:37:57,379 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:37:57,561 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:37:57,921 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:37:58,284 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:37:58,646 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:39:14,331 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:39:14,340 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:39:14,706 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:39:14,890 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:39:15,254 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:39:15,625 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:39:15,988 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:40:00,630 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:40:00,640 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:40:01,003 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:40:01,188 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:40:01,553 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:40:01,925 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:40:02,297 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:40:14,009 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:40:14,017 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:40:14,377 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:40:14,559 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:40:14,912 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:40:15,275 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:40:15,634 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:43:22,090 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:43:22,099 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:43:22,455 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:43:22,637 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:43:22,997 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:43:23,362 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:43:23,724 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:44:04,077 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:44:04,086 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:44:04,451 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:44:04,635 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:44:05,002 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:44:05,370 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:44:05,738 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:44:39,512 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:44:39,522 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:44:39,886 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:44:40,072 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:44:40,451 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:44:40,829 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:44:41,201 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:47:18,995 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:47:19,003 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:47:19,376 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:47:19,564 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:47:19,921 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:47:20,288 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:47:20,659 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 18:49:59,296 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 18:49:59,305 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 18:49:59,694 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 18:49:59,893 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 18:50:00,298 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 18:50:00,689 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 18:50:01,069 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:02:21,146 - fastapi-app - INFO - User successfully created. id=1, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:02:21,155 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:02:21,512 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:02:21,696 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:02:22,052 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:02:22,412 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:02:22,781 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:11:23,857 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:11:23,866 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:11:24,223 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:11:24,404 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:11:24,758 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:11:25,116 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:11:25,472 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:21:44,299 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:21:44,308 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:21:44,674 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:21:44,858 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:21:45,218 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:21:45,583 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:21:45,943 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:27:04,955 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:27:04,964 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:27:05,344 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:27:05,534 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:27:05,911 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:27:06,292 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:27:06,663 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:27:41,727 - fastapi-app - INFO - User successfully created. id=2, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:27:41,736 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:27:42,110 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:27:42,304 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:27:42,693 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:27:43,074 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:27:43,465 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:34:34,409 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:34:34,418 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:34:34,784 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:34:34,968 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:34:35,336 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:34:35,713 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:34:36,087 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:34:52,963 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:34:52,973 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:34:53,340 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:34:53,529 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:34:53,898 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:34:54,267 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:34:54,650 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:45:42,766 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:45:42,774 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:45:43,139 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:45:43,324 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:45:43,684 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:45:44,055 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:45:44,420 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:50:58,966 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:50:58,975 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:50:59,340 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:50:59,523 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:50:59,887 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:51:00,248 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:51:00,609 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:51:23,731 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:51:23,740 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:51:24,119 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:51:24,308 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:51:24,684 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:51:25,058 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:51:25,419 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:51:56,901 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:51:56,910 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:51:57,273 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:51:57,463 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:51:57,828 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:51:58,194 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:51:58,567 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:52:48,769 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:52:48,778 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:52:49,164 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:52:49,349 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:52:49,712 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:52:50,080 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:52:50,441 - fastapi-app - INFO - User successfully authorized. Username: test_user6
+2026-02-23 19:54:11,203 - fastapi-app - INFO - User successfully created. id=3, username=test_user1, email=test_user1@gmail.com
+2026-02-23 19:54:11,212 - fastapi-app - ERROR - Attempt to create existed user. username=test_user2, email=test_user2@gmail.com
+2026-02-23 19:54:11,577 - fastapi-app - INFO - User successfully authorized. Username: test_user3
+2026-02-23 19:54:11,760 - fastapi-app - ERROR - User authorization error. Username: test_user3
+2026-02-23 19:54:12,135 - fastapi-app - INFO - User successfully authorized. Username: test_user4
+2026-02-23 19:54:12,505 - fastapi-app - INFO - User successfully authorized. Username: test_user5
+2026-02-23 19:54:12,874 - fastapi-app - INFO - User successfully authorized. Username: test_user6
