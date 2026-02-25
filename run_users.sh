@@ -3,4 +3,4 @@
 #./run_users.sh
 
 echo "Starting App..."
-cd users && uvicorn src.main:app --reload
+cd users && uvicorn users.main:app --reload
