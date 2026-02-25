@@ -1,6 +1,6 @@
 from functools import wraps
 
-from src.api.graphql.user.schemas import UserPage
+from users.api.graphql.user.schemas import UserPage
 
 
 def require_authentication(func):
@@ -19,10 +19,10 @@ def require_authentication(func):
 def paginate(entity: str):
     def decorator(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        async def wrapper(*args, **kwargs):
             limit = kwargs["limit"] or 10
             offset = kwargs["offset"] or 0
-            all_items = func(*args, **kwargs)
+            all_items = await func(*args, **kwargs)
             total_items = len(all_items)
             paginated_items = list(all_items)[offset : offset + limit]
 
