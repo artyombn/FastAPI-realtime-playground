@@ -1,8 +1,6 @@
 FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
 
 WORKDIR /app
 
@@ -12,14 +10,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock ./
+COPY src ./src
+COPY README.md ./
 
 RUN pip install --upgrade pip poetry \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-interaction --no-ansi
 
-COPY src ./src
+RUN pip install -e .
 
-CMD ["gunicorn", "src.main:app", \
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+CMD ["gunicorn", "products.main:app", \
      "-k", "uvicorn.workers.UvicornWorker", \
      "--workers", "4", \
-     "--bind", "0.0.0.0:8000"]
+     "--bind", "0.0.0.0:7000"]
