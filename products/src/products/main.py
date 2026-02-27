@@ -1,7 +1,9 @@
 from fastapi import FastAPI, APIRouter
 
 from products.api.rest.views import product_router
+from products.config.local import setup_logging
 
+setup_logging()
 app = FastAPI()
 # API routers
 api_v1_router = APIRouter(prefix="/v1/api")

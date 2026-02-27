@@ -17,8 +17,6 @@ RUN pip install --upgrade pip poetry \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-interaction --no-ansi
 
-RUN pip install -e .
-
 ENV PYTHONPATH="/app:${PYTHONPATH}"
 
 CMD ["gunicorn", "products.main:app", \

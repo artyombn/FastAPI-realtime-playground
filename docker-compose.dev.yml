@@ -15,7 +15,7 @@ services:
     env_file:
       - .env
     networks:
-      - dev_network
+      - users_network
 
   products_app:
     build:
@@ -30,11 +30,15 @@ services:
     ports:
       - "8001:7000"
     networks:
-      - dev_network
+      - products_network
 
   products_redis:
     image: redis:latest
     container_name: products_redis_container
+#    ports:
+#      - "6379:6379"
+    networks:
+      - products_network
 
   users_postgres:
     image: postgres:latest
@@ -46,7 +50,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/users/data/pgdata
     networks:
-      - dev_network
+      - users_network
 
   users_pgadmin:
     image: dpage/pgadmin4:latest
@@ -60,7 +64,7 @@ services:
     volumes:
       - pgadmin:/var/lib/users/pgadmin
     networks:
-      - dev_network
+      - users_network
 
   users_nginx:
     image: nginx:latest
@@ -71,12 +75,14 @@ services:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/src:/usr/share/nginx/html
     networks:
-      - dev_network
+      - users_network
 
 volumes:
   pgdata:
   pgadmin:
 
 networks:
-  dev_network:
+  users_network:
+    driver: bridge
+  products_network:
     driver: bridge
