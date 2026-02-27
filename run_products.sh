@@ -3,4 +3,4 @@
 #./run_users.sh
 
 echo "Starting App..."
-cd products && uvicorn src.main:app --reload
+cd products && uvicorn products.main:app --port 7000 --reload
