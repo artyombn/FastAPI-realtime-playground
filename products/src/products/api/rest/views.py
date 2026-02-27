@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter
 
 from products.core.entities import (
@@ -9,6 +11,8 @@ from products.core.services import product_service
 
 product_router = APIRouter(prefix="/products", tags=["products"])
 
+logger = logging.getLogger("products_app")
+
 
 @product_router.get(
     "/",
@@ -17,7 +21,7 @@ product_router = APIRouter(prefix="/products", tags=["products"])
     description="Returns a list of all products with the total number of items.",
 )
 async def get_product_list() -> ProductListResponse:
-    all_products = product_service.list()
+    all_products = await product_service.list()
     products_list_output = ProductListResponse(
         total_products=len(all_products),
         products=all_products,
@@ -34,8 +38,8 @@ async def get_product_list() -> ProductListResponse:
 async def create_product(
     product: ProductCreate,
 ) -> dict[str, str]:
-    created_product = product_service.add(product)
-    return {"result": f"Product {created_product.name} was created successfully"}
+    await product_service.add(product)
+    return {"result": f"Product {product.name} was created successfully"}
 
 
 @product_router.get(
@@ -44,7 +48,7 @@ async def create_product(
     description="Returns detailed information about a product by its unique identifier.",
 )
 async def get_product_by_product_id(product_id: int) -> ProductResponse:
-    product_output = product_service.get_by_id(product_id)
+    product_output = await product_service.get_by_id(product_id)
     return product_output
 
 
@@ -54,5 +58,5 @@ async def get_product_by_product_id(product_id: int) -> ProductResponse:
     description="Deletes a product by its unique identifier.",
 )
 async def delete_product(product_id: int) -> dict:
-    product_service.delete(product_id)
+    await product_service.delete(product_id)
     return {"message": f"Product was deleted successfully"}
