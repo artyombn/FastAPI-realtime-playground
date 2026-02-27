@@ -1,16 +1,19 @@
-import json
+import logging
 
-import aioredis
+from redis.asyncio import Redis
 
-from products.core.entities import ProductCreate
+from products.core.entities import ProductCreate, ProductResponse
 from products.database.base import redis_client
+
+logger = logging.getLogger("products_app")
 
 
 class RedisRepository:
-    def __init__(self, client: aioredis.StrictRedis):
+    def __init__(self, client: Redis):
         self.client = client
 
     async def save(self, key: str, product: ProductCreate):
+
         await self.client.set(key, product.model_dump_json())
 
     async def list(self, key_pattern: str):
@@ -18,13 +21,19 @@ class RedisRepository:
         keys = []
         while True:
             cursor, partial_keys = await self.client.scan(
-                cursor=cursor, match=key_pattern
+                cursor=cursor, match=key_pattern, count=10
             )
             keys.extend(partial_keys)
             if cursor == 0:
                 break
 
-        return [ProductCreate.parse_raw(await self.client.get(key)) for key in keys]
+        result = []
+
+        for key in keys:
+            data = await self.client.get(key)
+            if data:
+                result.append(ProductResponse.parse_raw(data))
+        return result
 
 
 redis_repository = RedisRepository(redis_client)
