@@ -1,4 +1,4 @@
-import asyncio
+import logging
 from datetime import date, timedelta
 
 import httpx
@@ -10,6 +10,8 @@ from products.core.entities import (
 )
 from products.database.redis_repository import redis_repository
 
+logger = logging.getLogger("products_app")
+
 
 class ProductService:
     """
@@ -20,26 +22,39 @@ class ProductService:
         self.repository = repository
 
     @staticmethod
-    async def get_usd_rates(_date: date):
+    async def get_usd_rates(_date: str):
         async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange",
-                params={"json": True, "date": _date.strftime("%Y%m%d")},
+            logger.debug(
+                f"----> LINK <-----  https://www.cbr-xml-daily.ru/archive/{_date}/daily_json.js"
             )
+
+            response = await client.get(
+                f"https://www.cbr-xml-daily.ru/archive/{_date}/daily_json.js",
+            )
+            if response.status_code != 200:
+                return None
         usd_rate = next(
-            (item for item in response.json() if item["cc"] == "USD"), {"rate": 0}
+            (item for item in response.json()["Valute"].items() if item[0] == "USD"),
         )
-        return usd_rate["rate"]
+        return usd_rate
 
     async def add(self, product: ProductCreate):
         today = date.today()
         price_data = {}
 
-        for i in range(7):
+        for i in range(1, 30):
             day = today - timedelta(days=i)
-            usd_rates = await self.get_usd_rates(day)
-            price_data[day.strftime("%Y-%m-%d")] = usd_rates * product.origin_price
-            # await asyncio.sleep(10)
+            formatted_day = day.strftime("%Y/%m/%d")
+            usd_rates = await self.get_usd_rates(formatted_day)
+
+            if usd_rates is None:
+                continue
+            usd_rate = usd_rates[1]["Value"]
+            price_data[formatted_day.replace("/", "-")] = (
+                usd_rate * product.origin_price
+            )
+
+        logger.debug(f"PRICE_DATA = {price_data}")
 
         history = PriceHistory(prices=price_data)
         product.price_history = history
