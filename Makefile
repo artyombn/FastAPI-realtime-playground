@@ -1,8 +1,11 @@
-users-app:
+app:
 	docker compose -f docker-compose.dev.yml up --build
 
 users-postgres:
 	docker compose -f docker-compose.dev.yml up users_postgres
+
+products-redis:
+	docker compose -f docker-compose.dev.yml up products_redis
 
 test-users-docker:
 	docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from test_users_app
